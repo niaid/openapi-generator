@@ -353,19 +353,6 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
         if (!additionalProperties.containsKey(RXJS_VERSION)) {
             additionalProperties.put(RXJS_VERSION, angularDependencies.getRxjsVersion());
         }
-        
-        // Set the rxJS version compatible to the Angular version
-        if (ngVersion.atLeast("15.0.0")) {
-            additionalProperties.put("rxjsVersion", "7.5.5");
-        } else if (ngVersion.atLeast("14.0.0")) {
-            additionalProperties.put("rxjsVersion", "7.5.5");
-        } else if (ngVersion.atLeast("13.0.0")) {
-            additionalProperties.put("rxjsVersion", "7.4.0");
-        } else if (ngVersion.atLeast("10.0.0")) {
-            additionalProperties.put("rxjsVersion", "6.6.0");
-        } else if (ngVersion.atLeast("9.0.0")) {
-            additionalProperties.put("rxjsVersion", "6.5.3");
-        }
 
         if (!additionalProperties.containsKey(NGPACKAGR_VERSION)) {
             additionalProperties.put(NGPACKAGR_VERSION, angularDependencies.getNgPackagrVersion());
