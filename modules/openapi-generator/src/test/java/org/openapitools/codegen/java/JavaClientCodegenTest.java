@@ -132,21 +132,21 @@ public class JavaClientCodegenTest {
     @DataProvider
     Iterator<Library> librariesSupportingGson() {
         return Arrays.stream(Library.values())
-                .filter(library -> library.getSupportedSerializers().contains(Serializer.GSON))
+                .filter(library -> library.supportedSerializers.contains(Serializer.GSON))
                 .iterator();
     }
 
     @DataProvider
     Iterator<Library> librariesSupportingJackson() {
         return Arrays.stream(Library.values())
-                .filter(library -> library.getSupportedSerializers().contains(Serializer.JACKSON))
+                .filter(library -> library.supportedSerializers.contains(Serializer.JACKSON))
                 .iterator();
     }
 
     @DataProvider
     Iterator<Library> librariesNotSupportingJackson() {
         return Arrays.stream(Library.values())
-                .filter(library -> !library.getSupportedSerializers().contains(Serializer.JACKSON))
+                .filter(library -> !library.supportedSerializers.contains(Serializer.JACKSON))
                 .iterator();
     }
 
@@ -2808,7 +2808,7 @@ public class JavaClientCodegenTest {
                 .addAdditionalProperty(SERIALIZATION_LIBRARY, Serializer.GSON)
                 .addAdditionalProperty(OPENAPI_NULLABLE, "false")
                 .setGeneratorName(JAVA_GENERATOR)
-                .setLibrary(library.getValue())
+                .setLibrary(library.value)
                 .setInputSpec("src/test/resources/3_0/java/autoset_constant.yaml")
                 .setOutputDir(newTempFolder().toString());
         var generator = new DefaultGenerator();

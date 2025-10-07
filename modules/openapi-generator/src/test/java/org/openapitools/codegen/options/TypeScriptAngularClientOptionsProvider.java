@@ -18,6 +18,7 @@
 package org.openapitools.codegen.options;
 
 import com.google.common.collect.ImmutableMap;
+import org.openapitools.codegen.CodegenConstants;
 import org.openapitools.codegen.languages.TypeScriptAngularClientCodegen;
 
 import java.util.Map;
@@ -39,10 +40,6 @@ public class TypeScriptAngularClientOptionsProvider implements TypeScriptSharedC
     public static final String RXJS_VERSION = "";
     public static final String NGPACKAGR_VERSION = "";
     public static final String ZONEJS_VERSION = "";
-    public static String SERVICE_SUFFIX = "Service";
-    public static String SERVICE_FILE_SUFFIX = ".service";
-    public static String MODEL_SUFFIX = "";
-    public static String MODEL_FILE_SUFFIX = "";
     public static final String ENUM_UNKNOWN_DEFAULT_CASE_VALUE = "false";
     public static final String HTTP_OPTIONS_NAME_VALUE = "options";
 
