@@ -83,6 +83,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
     public static final String RXJS_VERSION = "rxjsVersion";
     public static final String NGPACKAGR_VERSION = "ngPackagrVersion";
     public static final String ZONEJS_VERSION = "zonejsVersion";
+    public static final String HTTP_OPTIONS_NAME = "httpOptionsName";
 
     protected String ngVersion = "20.0.0";
     @Getter @Setter
@@ -96,6 +97,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
     @Getter protected Boolean stringEnums = false;
     protected QUERY_PARAM_OBJECT_FORMAT_TYPE queryParamObjectFormat = QUERY_PARAM_OBJECT_FORMAT_TYPE.dot;
     protected PROVIDED_IN_LEVEL providedIn = PROVIDED_IN_LEVEL.root;
+    protected String httpOptionsName = "options";
 
     private boolean taggedUnions = false;
 
@@ -155,6 +157,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
         this.cliOptions.add(new CliOption(RXJS_VERSION, "The version of RxJS compatible with Angular (see ngVersion option)."));
         this.cliOptions.add(new CliOption(NGPACKAGR_VERSION, "The version of ng-packagr compatible with Angular (see ngVersion option)."));
         this.cliOptions.add(new CliOption(ZONEJS_VERSION, "The version of zone.js compatible with Angular (see ngVersion option)."));
+        this.cliOptions.add(new CliOption(HTTP_OPTIONS_NAME, "The name for optional http options in client API services").defaultValue(this.httpOptionsName));
     }
 
     @Override
@@ -305,6 +308,13 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
         if (additionalProperties.containsKey(QUERY_PARAM_OBJECT_FORMAT)) {
             setQueryParamObjectFormat((String) additionalProperties.get(QUERY_PARAM_OBJECT_FORMAT));
         }
+
+        if (additionalProperties.containsKey(HTTP_OPTIONS_NAME)) {
+            setHttpOptionsName((String) additionalProperties.get(HTTP_OPTIONS_NAME));
+        }
+
+        writePropertyBack(HTTP_OPTIONS_NAME, this.httpOptionsName);
+
         additionalProperties.put("isQueryParamObjectFormatDot", getQueryParamObjectFormatDot());
         additionalProperties.put("isQueryParamObjectFormatJson", getQueryParamObjectFormatJson());
         additionalProperties.put("isQueryParamObjectFormatKey", getQueryParamObjectFormatKey());
@@ -342,6 +352,19 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
 
         if (!additionalProperties.containsKey(RXJS_VERSION)) {
             additionalProperties.put(RXJS_VERSION, angularDependencies.getRxjsVersion());
+        }
+        
+        // Set the rxJS version compatible to the Angular version
+        if (ngVersion.atLeast("15.0.0")) {
+            additionalProperties.put("rxjsVersion", "7.5.5");
+        } else if (ngVersion.atLeast("14.0.0")) {
+            additionalProperties.put("rxjsVersion", "7.5.5");
+        } else if (ngVersion.atLeast("13.0.0")) {
+            additionalProperties.put("rxjsVersion", "7.4.0");
+        } else if (ngVersion.atLeast("10.0.0")) {
+            additionalProperties.put("rxjsVersion", "6.6.0");
+        } else if (ngVersion.atLeast("9.0.0")) {
+            additionalProperties.put("rxjsVersion", "6.5.3");
         }
 
         if (!additionalProperties.containsKey(NGPACKAGR_VERSION)) {
@@ -396,7 +419,6 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
             return super.getTypeDeclaration(p);
         }
     }
-
 
     private String applyLocalTypeMapping(String type) {
         if (typeMapping.containsKey(type)) {
@@ -754,6 +776,14 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
             String msg = String.format(Locale.ROOT, "Invalid providedIn level '%s'. Must be one of %s.", level, values);
             throw new IllegalArgumentException(msg);
         }
+    }
+
+    /**
+     * 
+     * @param optionsName the name of the options parameter
+     */
+    public void setHttpOptionsName(String optionsName) {
+        this.httpOptionsName = optionsName;
     }
 
     /**

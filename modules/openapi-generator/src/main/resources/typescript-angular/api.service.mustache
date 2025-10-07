@@ -90,13 +90,13 @@ export class {{classname}} extends BaseService {
      * @deprecated
      {{/isDeprecated}}
      */
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>;
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<HttpResponse<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<HttpEvent<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
-    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<any> {
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'body', reportProgress?: boolean, {{httpOptionsName}}?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>;
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'response', reportProgress?: boolean, {{httpOptionsName}}?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<HttpResponse<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe?: 'events', reportProgress?: boolean, {{httpOptionsName}}?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<HttpEvent<{{#returnType}}{{{returnType}}}{{#isResponseTypeFile}}|undefined{{/isResponseTypeFile}}{{/returnType}}{{^returnType}}any{{/returnType}}>>;
+    public {{nickname}}({{^useSingleRequestParameter}}{{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}{{/useSingleRequestParameter}}{{#useSingleRequestParameter}}{{#allParams.0}}requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}: {{#prefixParameterInterfaces}}{{classname}}{{/prefixParameterInterfaces}}{{operationIdCamelCase}}RequestParams, {{/allParams.0}}{{/useSingleRequestParameter}}observe: any = 'body', reportProgress: boolean = false, {{httpOptionsName}}?: {httpHeaderAccept?: {{#produces}}'{{{mediaType}}}'{{^-last}} | {{/-last}}{{/produces}}{{^produces}}undefined{{/produces}},{{#httpContextInOptions}} context?: HttpContext{{/httpContextInOptions}}{{#httpTransferCacheInOptions}}, transferCache?: boolean{{/httpTransferCacheInOptions}}}): Observable<any> {
 {{#allParams}}
 {{#useSingleRequestParameter}}
-        const {{paramName}} = requestParameters{{^hasRequiredVars}}?{{/hasRequiredVars}}.{{paramName}};
+        const {{paramName}} = requestParameters{{^hasRequiredParams}}?{{/hasRequiredParams}}.{{paramName}};
 {{/useSingleRequestParameter}}
 {{#required}}
         if ({{paramName}} === null || {{paramName}} === undefined) {
@@ -172,17 +172,25 @@ export class {{classname}} extends BaseService {
 {{/isOAuth}}
 
 {{/authMethods}}
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-    {{#produces}}
-            '{{{mediaType}}}'{{^-last}},{{/-last}}
-    {{/produces}}
-        ]);
+        let localVarHttpHeaderAcceptSelected: string | undefined = {{httpOptionsName}} && {{httpOptionsName}}.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                {{#produces}}
+                '{{{mediaType}}}'{{^-last}},{{/-last}}
+                {{/produces}}
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
         }
 
 {{#httpContextInOptions}}
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+        let localVarHttpContext: HttpContext | undefined = {{httpOptionsName}} && {{httpOptionsName}}.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
 {{/httpContextInOptions}}
 {{#httpTransferCacheInOptions}}
 

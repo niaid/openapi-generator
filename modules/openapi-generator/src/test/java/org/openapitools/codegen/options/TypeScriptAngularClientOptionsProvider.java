@@ -39,6 +39,12 @@ public class TypeScriptAngularClientOptionsProvider implements TypeScriptSharedC
     public static final String RXJS_VERSION = "";
     public static final String NGPACKAGR_VERSION = "";
     public static final String ZONEJS_VERSION = "";
+    public static String SERVICE_SUFFIX = "Service";
+    public static String SERVICE_FILE_SUFFIX = ".service";
+    public static String MODEL_SUFFIX = "";
+    public static String MODEL_FILE_SUFFIX = "";
+    public static final String ENUM_UNKNOWN_DEFAULT_CASE_VALUE = "false";
+    public static final String HTTP_OPTIONS_NAME_VALUE = "options";
 
     @Override
     public String getLanguage() {
@@ -69,6 +75,8 @@ public class TypeScriptAngularClientOptionsProvider implements TypeScriptSharedC
                 .put(TypeScriptAngularClientCodegen.RXJS_VERSION, RXJS_VERSION)
                 .put(TypeScriptAngularClientCodegen.NGPACKAGR_VERSION, NGPACKAGR_VERSION)
                 .put(TypeScriptAngularClientCodegen.ZONEJS_VERSION, ZONEJS_VERSION)
+                .put(CodegenConstants.ENUM_UNKNOWN_DEFAULT_CASE, ENUM_UNKNOWN_DEFAULT_CASE_VALUE)
+                .put(TypeScriptAngularClientCodegen.HTTP_OPTIONS_NAME, HTTP_OPTIONS_NAME_VALUE)
                 .build();
     }
 }
