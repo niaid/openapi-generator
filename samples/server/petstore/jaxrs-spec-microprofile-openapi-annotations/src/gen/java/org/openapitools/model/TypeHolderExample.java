@@ -1,15 +1,13 @@
 package org.openapitools.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.io.Serializable;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 
-import io.swagger.annotations.*;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,13 +18,13 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @org.eclipse.microprofile.openapi.annotations.media.Schema(description="")
 @JsonTypeName("TypeHolderExample")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJAXRSSpecServerCodegen")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJAXRSSpecServerCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 public class TypeHolderExample  implements Serializable {
-  private @Valid String stringItem;
-  private @Valid BigDecimal numberItem;
-  private @Valid Float floatItem;
-  private @Valid Integer integerItem;
-  private @Valid Boolean boolItem;
+  private String stringItem;
+  private BigDecimal numberItem;
+  private Float floatItem;
+  private Integer integerItem;
+  private Boolean boolItem;
   private @Valid List<Integer> arrayItem = new ArrayList<>();
 
   protected TypeHolderExample(TypeHolderExampleBuilder<?, ?> b) {
@@ -41,6 +39,23 @@ public class TypeHolderExample  implements Serializable {
   public TypeHolderExample() {
   }
 
+  @JsonCreator
+  public TypeHolderExample(
+    @JsonProperty(required = true, value = "string_item") String stringItem,
+    @JsonProperty(required = true, value = "number_item") BigDecimal numberItem,
+    @JsonProperty(required = true, value = "float_item") Float floatItem,
+    @JsonProperty(required = true, value = "integer_item") Integer integerItem,
+    @JsonProperty(required = true, value = "bool_item") Boolean boolItem,
+    @JsonProperty(required = true, value = "array_item") List<Integer> arrayItem
+  ) {
+    this.stringItem = stringItem;
+    this.numberItem = numberItem;
+    this.floatItem = floatItem;
+    this.integerItem = integerItem;
+    this.boolItem = boolItem;
+    this.arrayItem = arrayItem;
+  }
+
   /**
    **/
   public TypeHolderExample stringItem(String stringItem) {
@@ -49,15 +64,13 @@ public class TypeHolderExample  implements Serializable {
   }
 
   
-  @ApiModelProperty(example = "what", required = true, value = "")
   @org.eclipse.microprofile.openapi.annotations.media.Schema(example = "what", required = true, description = "")
-  @JsonProperty("string_item")
-  @NotNull
-  public String getStringItem() {
+  @JsonProperty(required = true, value = "string_item")
+  @NotNull public String getStringItem() {
     return stringItem;
   }
 
-  @JsonProperty("string_item")
+  @JsonProperty(required = true, value = "string_item")
   public void setStringItem(String stringItem) {
     this.stringItem = stringItem;
   }
@@ -70,15 +83,13 @@ public class TypeHolderExample  implements Serializable {
   }
 
   
-  @ApiModelProperty(example = "1.234", required = true, value = "")
   @org.eclipse.microprofile.openapi.annotations.media.Schema(example = "1.234", required = true, description = "")
-  @JsonProperty("number_item")
-  @NotNull
-  public BigDecimal getNumberItem() {
+  @JsonProperty(required = true, value = "number_item")
+  @NotNull @Valid public BigDecimal getNumberItem() {
     return numberItem;
   }
 
-  @JsonProperty("number_item")
+  @JsonProperty(required = true, value = "number_item")
   public void setNumberItem(BigDecimal numberItem) {
     this.numberItem = numberItem;
   }
@@ -91,15 +102,13 @@ public class TypeHolderExample  implements Serializable {
   }
 
   
-  @ApiModelProperty(example = "1.234", required = true, value = "")
   @org.eclipse.microprofile.openapi.annotations.media.Schema(example = "1.234", required = true, description = "")
-  @JsonProperty("float_item")
-  @NotNull
-  public Float getFloatItem() {
+  @JsonProperty(required = true, value = "float_item")
+  @NotNull public Float getFloatItem() {
     return floatItem;
   }
 
-  @JsonProperty("float_item")
+  @JsonProperty(required = true, value = "float_item")
   public void setFloatItem(Float floatItem) {
     this.floatItem = floatItem;
   }
@@ -112,15 +121,13 @@ public class TypeHolderExample  implements Serializable {
   }
 
   
-  @ApiModelProperty(example = "-2", required = true, value = "")
   @org.eclipse.microprofile.openapi.annotations.media.Schema(example = "-2", required = true, description = "")
-  @JsonProperty("integer_item")
-  @NotNull
-  public Integer getIntegerItem() {
+  @JsonProperty(required = true, value = "integer_item")
+  @NotNull public Integer getIntegerItem() {
     return integerItem;
   }
 
-  @JsonProperty("integer_item")
+  @JsonProperty(required = true, value = "integer_item")
   public void setIntegerItem(Integer integerItem) {
     this.integerItem = integerItem;
   }
@@ -133,15 +140,13 @@ public class TypeHolderExample  implements Serializable {
   }
 
   
-  @ApiModelProperty(example = "true", required = true, value = "")
   @org.eclipse.microprofile.openapi.annotations.media.Schema(example = "true", required = true, description = "")
-  @JsonProperty("bool_item")
-  @NotNull
-  public Boolean getBoolItem() {
+  @JsonProperty(required = true, value = "bool_item")
+  @NotNull public Boolean getBoolItem() {
     return boolItem;
   }
 
-  @JsonProperty("bool_item")
+  @JsonProperty(required = true, value = "bool_item")
   public void setBoolItem(Boolean boolItem) {
     this.boolItem = boolItem;
   }
@@ -154,15 +159,13 @@ public class TypeHolderExample  implements Serializable {
   }
 
   
-  @ApiModelProperty(example = "[0, 1, 2, 3]", required = true, value = "")
   @org.eclipse.microprofile.openapi.annotations.media.Schema(example = "[0, 1, 2, 3]", required = true, description = "")
-  @JsonProperty("array_item")
-  @NotNull
-  public List<Integer> getArrayItem() {
+  @JsonProperty(required = true, value = "array_item")
+  @NotNull public List<Integer> getArrayItem() {
     return arrayItem;
   }
 
-  @JsonProperty("array_item")
+  @JsonProperty(required = true, value = "array_item")
   public void setArrayItem(List<Integer> arrayItem) {
     this.arrayItem = arrayItem;
   }

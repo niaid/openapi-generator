@@ -47,6 +47,7 @@ UPPER(String.valueOf("UPPER")), LOWER(String.valueOf("lower")), EMPTY(String.val
 }
 
   @ApiModelProperty(value = "")
+
   private EnumStringEnum enumString;
 
 public enum EnumStringRequiredEnum {
@@ -82,6 +83,7 @@ UPPER(String.valueOf("UPPER")), LOWER(String.valueOf("lower")), EMPTY(String.val
 }
 
   @ApiModelProperty(required = true, value = "")
+
   private EnumStringRequiredEnum enumStringRequired;
 
 public enum EnumIntegerEnum {
@@ -117,6 +119,7 @@ NUMBER_1(Integer.valueOf(1)), NUMBER_MINUS_1(Integer.valueOf(-1));
 }
 
   @ApiModelProperty(value = "")
+
   private EnumIntegerEnum enumInteger;
 
 public enum EnumNumberEnum {
@@ -152,10 +155,13 @@ NUMBER_1_DOT_1(Double.valueOf(1.1)), NUMBER_MINUS_1_DOT_2(Double.valueOf(-1.2));
 }
 
   @ApiModelProperty(value = "")
+
   private EnumNumberEnum enumNumber;
 
   @ApiModelProperty(value = "")
+
   @Valid
+
   private OuterEnum outerEnum;
  /**
    * Get enumString
@@ -269,11 +275,11 @@ NUMBER_1_DOT_1(Double.valueOf(1.1)), NUMBER_MINUS_1_DOT_2(Double.valueOf(-1.2));
       return false;
     }
     EnumTest enumTest = (EnumTest) o;
-    return Objects.equals(enumString, enumTest.enumString) &&
-        Objects.equals(enumStringRequired, enumTest.enumStringRequired) &&
-        Objects.equals(enumInteger, enumTest.enumInteger) &&
-        Objects.equals(enumNumber, enumTest.enumNumber) &&
-        Objects.equals(outerEnum, enumTest.outerEnum);
+    return Objects.equals(this.enumString, enumTest.enumString) &&
+        Objects.equals(this.enumStringRequired, enumTest.enumStringRequired) &&
+        Objects.equals(this.enumInteger, enumTest.enumInteger) &&
+        Objects.equals(this.enumNumber, enumTest.enumNumber) &&
+        Objects.equals(this.outerEnum, enumTest.outerEnum);
   }
 
   @Override

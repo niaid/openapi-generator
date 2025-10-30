@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SpecialModelName  {
   
   @ApiModelProperty(value = "")
+
   private Long $specialPropertyName;
  /**
    * Get $specialPropertyName
@@ -40,7 +41,7 @@ public class SpecialModelName  {
       return false;
     }
     SpecialModelName $specialModelName = (SpecialModelName) o;
-    return Objects.equals($specialPropertyName, $specialModelName.$specialPropertyName);
+    return Objects.equals(this.$specialPropertyName, $specialModelName.$specialPropertyName);
   }
 
   @Override

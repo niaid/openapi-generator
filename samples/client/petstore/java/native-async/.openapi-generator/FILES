@@ -80,6 +80,7 @@ docs/SimpleQuadrilateral.md
 docs/SpecialModelName.md
 docs/StoreApi.md
 docs/Tag.md
+docs/TestInlineFreeformAdditionalPropertiesRequest.md
 docs/Triangle.md
 docs/TriangleInterface.md
 docs/User.md
@@ -102,6 +103,8 @@ src/main/java/org/openapitools/client/Configuration.java
 src/main/java/org/openapitools/client/JSON.java
 src/main/java/org/openapitools/client/Pair.java
 src/main/java/org/openapitools/client/RFC3339DateFormat.java
+src/main/java/org/openapitools/client/RFC3339InstantDeserializer.java
+src/main/java/org/openapitools/client/RFC3339JavaTimeModule.java
 src/main/java/org/openapitools/client/ServerConfiguration.java
 src/main/java/org/openapitools/client/ServerVariable.java
 src/main/java/org/openapitools/client/api/AnotherFakeApi.java
@@ -181,6 +184,7 @@ src/main/java/org/openapitools/client/model/ShapeOrNull.java
 src/main/java/org/openapitools/client/model/SimpleQuadrilateral.java
 src/main/java/org/openapitools/client/model/SpecialModelName.java
 src/main/java/org/openapitools/client/model/Tag.java
+src/main/java/org/openapitools/client/model/TestInlineFreeformAdditionalPropertiesRequest.java
 src/main/java/org/openapitools/client/model/Triangle.java
 src/main/java/org/openapitools/client/model/TriangleInterface.java
 src/main/java/org/openapitools/client/model/User.java

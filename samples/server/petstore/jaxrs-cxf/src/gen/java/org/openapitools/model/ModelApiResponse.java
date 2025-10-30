@@ -12,12 +12,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ModelApiResponse  {
   
   @ApiModelProperty(value = "")
+
   private Integer code;
 
   @ApiModelProperty(value = "")
+
   private String type;
 
   @ApiModelProperty(value = "")
+
   private String message;
  /**
    * Get code
@@ -82,9 +85,9 @@ public class ModelApiResponse  {
       return false;
     }
     ModelApiResponse _apiResponse = (ModelApiResponse) o;
-    return Objects.equals(code, _apiResponse.code) &&
-        Objects.equals(type, _apiResponse.type) &&
-        Objects.equals(message, _apiResponse.message);
+    return Objects.equals(this.code, _apiResponse.code) &&
+        Objects.equals(this.type, _apiResponse.type) &&
+        Objects.equals(this.message, _apiResponse.message);
   }
 
   @Override

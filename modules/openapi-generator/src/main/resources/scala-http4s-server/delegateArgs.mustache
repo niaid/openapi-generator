@@ -1,0 +1,21 @@
+{{#pathParams}}
+      {{#fnEscapeBacktick}}{{{paramName}}}{{/fnEscapeBacktick}}: {{{vendorExtensions.x-type}}},
+{{/pathParams}}
+{{#queryParams}}
+  {{#isArray}}
+    {{#required}}
+      {{#fnEscapeBacktick}}{{{paramName}}}{{/fnEscapeBacktick}}: List[{{{items.vendorExtensions.x-type}}}],
+    {{/required}}
+    {{^required}}
+      {{#fnEscapeBacktick}}{{{paramName}}}{{/fnEscapeBacktick}}: Option[List[{{{items.vendorExtensions.x-type}}}]],
+    {{/required}}
+  {{/isArray}}
+  {{^isArray}}
+    {{#required}}
+      {{#fnEscapeBacktick}}{{{paramName}}}{{/fnEscapeBacktick}}: {{{vendorExtensions.x-type}}},
+    {{/required}}
+    {{^required}}
+      {{#fnEscapeBacktick}}{{{paramName}}}{{/fnEscapeBacktick}}: Option[{{{vendorExtensions.x-type}}}],
+    {{/required}}
+  {{/isArray}}
+{{/queryParams}}

@@ -25,25 +25,27 @@ import java.util.Arrays;
 
 /**
  * Split text by 2 spaces and then return the first entry
- *
+ * <p>
  * Register:
  * <pre>
  * additionalProperties.put("first", new FirstLambda());
  * </pre>
- *
+ * <p>
  * Use:
  * <pre>
  * {{#first}}{{name}}{{/first}}
  * </pre>
  */
 public class FirstLambda implements Mustache.Lambda {
-    public FirstLambda() {
+    private final String delimiter;
 
+    public FirstLambda(String delimiter) {
+        this.delimiter = delimiter;
     }
 
     @Override
     public void execute(Template.Fragment fragment, Writer writer) throws IOException {
-        String[] parts = fragment.execute().trim().split("  ");
+        String[] parts = fragment.execute().split(this.delimiter);
 
         writer.write(Arrays.stream(parts).findFirst().orElse(""));
     }

@@ -25,10 +25,12 @@ public class {{classname}} {{#parent}}extends {{{.}}}{{/parent}} {{#vendorExtens
 
         {{^isContainer}}
 {{>enumClass}}
+
         {{/isContainer}}
         {{#isContainer}}
             {{#mostInnerItems}}
 {{>enumClass}}
+
             {{/mostInnerItems}}
         {{/isContainer}}
 
@@ -43,7 +45,7 @@ public class {{classname}} {{#parent}}extends {{{.}}}{{/parent}} {{#vendorExtens
     // JSON-B / Jackson
     }
 
-    /**
+{{#hasVars}}    /**
      * Create {{classname}}.
      *
 {{#vars}}
@@ -58,7 +60,7 @@ public class {{classname}} {{#parent}}extends {{{.}}}{{/parent}} {{#vendorExtens
 {{#vars}}
         this.{{name}} = {{name}};
 {{/vars}}
-    }
+    }{{/hasVars}}
 
 {{#vars}}{{#vendorExtensions.x-has-readonly-properties}}{{#jsonb}}
     @JsonbCreator
@@ -103,7 +105,7 @@ public class {{classname}} {{#parent}}extends {{{.}}}{{/parent}} {{#vendorExtens
         StringBuilder sb = new StringBuilder();
         sb.append("class {{classname}} {\n");
         {{#parent}}sb.append("    ").append(toIndentedString(super.toString())).append("\n");{{/parent}}
-        {{#vars}}sb.append("    {{name}}: ").append(toIndentedString({{name}})).append("\n");
+        {{#vars}}sb.append("    {{name}}: ").append({{#isPassword}}"*"{{/isPassword}}{{^isPassword}}toIndentedString({{name}}){{/isPassword}}).append("\n");
         {{/vars}}sb.append("}");
         return sb.toString();
     }

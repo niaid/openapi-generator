@@ -11,24 +11,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Capitalization  {
   
   @ApiModelProperty(value = "")
+
   private String smallCamel;
 
   @ApiModelProperty(value = "")
+
   private String capitalCamel;
 
   @ApiModelProperty(value = "")
+
   private String smallSnake;
 
   @ApiModelProperty(value = "")
+
   private String capitalSnake;
 
   @ApiModelProperty(value = "")
+
   private String scAETHFlowPoints;
 
-  @ApiModelProperty(value = "Name of the pet ")
  /**
-   * Name of the pet 
-  **/
+  * Name of the pet 
+  */
+  @ApiModelProperty(value = "Name of the pet ")
+
   private String ATT_NAME;
  /**
    * Get smallCamel
@@ -147,12 +153,12 @@ public class Capitalization  {
       return false;
     }
     Capitalization capitalization = (Capitalization) o;
-    return Objects.equals(smallCamel, capitalization.smallCamel) &&
-        Objects.equals(capitalCamel, capitalization.capitalCamel) &&
-        Objects.equals(smallSnake, capitalization.smallSnake) &&
-        Objects.equals(capitalSnake, capitalization.capitalSnake) &&
-        Objects.equals(scAETHFlowPoints, capitalization.scAETHFlowPoints) &&
-        Objects.equals(ATT_NAME, capitalization.ATT_NAME);
+    return Objects.equals(this.smallCamel, capitalization.smallCamel) &&
+        Objects.equals(this.capitalCamel, capitalization.capitalCamel) &&
+        Objects.equals(this.smallSnake, capitalization.smallSnake) &&
+        Objects.equals(this.capitalSnake, capitalization.capitalSnake) &&
+        Objects.equals(this.scAETHFlowPoints, capitalization.scAETHFlowPoints) &&
+        Objects.equals(this.ATT_NAME, capitalization.ATT_NAME);
   }
 
   @Override

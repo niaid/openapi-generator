@@ -2,6 +2,7 @@
 
 OpenAPI Petstore
 - API version: 1.0.0
+  - Generator version: 7.16.0-SNAPSHOT
 
 This spec is mainly for testing Petstore server and contains fake endpoints, models. Please do not use this for any other purpose. Special characters: \" \\
 
@@ -82,7 +83,7 @@ Please follow the [installation](#installation) instruction and execute the foll
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.Configuration;
-import org.openapitools.client.models.*;
+import org.openapitools.client.model.*;
 import org.openapitools.client.api.AnotherFakeApi;
 
 public class Example {
@@ -91,9 +92,10 @@ public class Example {
     defaultClient.setBasePath("http://petstore.swagger.io:80/v2");
 
     AnotherFakeApi apiInstance = new AnotherFakeApi(defaultClient);
+    UUID uuidTest = UUID.randomUUID(); // UUID | to test uuid example value
     Client body = new Client(); // Client | client model
     try {
-      Client result = apiInstance.call123testSpecialTags(body);
+      Client result = apiInstance.call123testSpecialTags(uuidTest, body);
       System.out.println(result);
     } catch (ApiException e) {
       System.err.println("Exception when calling AnotherFakeApi#call123testSpecialTags");

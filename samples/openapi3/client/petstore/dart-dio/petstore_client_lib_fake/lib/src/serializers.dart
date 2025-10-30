@@ -24,6 +24,7 @@ import 'package:openapi/src/model/array_test.dart';
 import 'package:openapi/src/model/capitalization.dart';
 import 'package:openapi/src/model/cat.dart';
 import 'package:openapi/src/model/category.dart';
+import 'package:openapi/src/model/child_with_nullable.dart';
 import 'package:openapi/src/model/class_model.dart';
 import 'package:openapi/src/model/deprecated_object.dart';
 import 'package:openapi/src/model/dog.dart';
@@ -47,7 +48,10 @@ import 'package:openapi/src/model/model_return.dart';
 import 'package:openapi/src/model/name.dart';
 import 'package:openapi/src/model/nullable_class.dart';
 import 'package:openapi/src/model/number_only.dart';
+import 'package:openapi/src/model/object_that_references_objects_with_duplicate_inline_enums.dart';
 import 'package:openapi/src/model/object_with_deprecated_fields.dart';
+import 'package:openapi/src/model/object_with_duplicate_inline_enum.dart';
+import 'package:openapi/src/model/object_with_inline_enum.dart';
 import 'package:openapi/src/model/order.dart';
 import 'package:openapi/src/model/outer_composite.dart';
 import 'package:openapi/src/model/outer_enum.dart';
@@ -55,11 +59,15 @@ import 'package:openapi/src/model/outer_enum_default_value.dart';
 import 'package:openapi/src/model/outer_enum_integer.dart';
 import 'package:openapi/src/model/outer_enum_integer_default_value.dart';
 import 'package:openapi/src/model/outer_object_with_enum_property.dart';
+import 'package:openapi/src/model/parent_with_nullable.dart';
 import 'package:openapi/src/model/pet.dart';
 import 'package:openapi/src/model/read_only_first.dart';
 import 'package:openapi/src/model/single_ref_type.dart';
 import 'package:openapi/src/model/special_model_name.dart';
 import 'package:openapi/src/model/tag.dart';
+import 'package:openapi/src/model/test_enum.dart';
+import 'package:openapi/src/model/test_inline_freeform_additional_properties_request.dart';
+import 'package:openapi/src/model/test_item.dart';
 import 'package:openapi/src/model/user.dart';
 
 part 'serializers.g.dart';
@@ -75,6 +83,7 @@ part 'serializers.g.dart';
   Capitalization,
   Cat,
   Category,
+  ChildWithNullable,
   ClassModel,
   DeprecatedObject,
   Dog,
@@ -98,7 +107,10 @@ part 'serializers.g.dart';
   Name,
   NullableClass,
   NumberOnly,
+  ObjectThatReferencesObjectsWithDuplicateInlineEnums,
   ObjectWithDeprecatedFields,
+  ObjectWithDuplicateInlineEnum,
+  ObjectWithInlineEnum,
   Order,
   OuterComposite,
   OuterEnum,
@@ -106,11 +118,15 @@ part 'serializers.g.dart';
   OuterEnumInteger,
   OuterEnumIntegerDefaultValue,
   OuterObjectWithEnumProperty,
+  ParentWithNullable,$ParentWithNullable,
   Pet,
   ReadOnlyFirst,
   SingleRefType,
   SpecialModelName,
   Tag,
+  TestEnum,
+  TestInlineFreeformAdditionalPropertiesRequest,
+  TestItem,
   User,
 ])
 Serializers serializers = (_$serializers.toBuilder()
@@ -135,6 +151,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<Pet>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+        () => MapBuilder<String, JsonObject>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(int)]),
         () => MapBuilder<String, int>(),
       )
@@ -147,11 +167,12 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<String>(),
       )
       ..add(Animal.serializer)
+      ..add(ParentWithNullable.serializer)
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer()))
-    .build();
+      ..add(Iso8601DateTimeSerializer())
+    ).build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

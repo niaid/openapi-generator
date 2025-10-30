@@ -1,4 +1,5 @@
 .mvn/.gradle-enterprise/
+.mvn/.develocity/
 .scannerwork/
 .vscode
 *.iml
@@ -8,12 +9,14 @@ out/
 *.gpg
 classpath.txt
 version.properties
+modules/openapi-generator-maven-plugin/src/test/resources/default/_merged_spec.yaml
 modules/openapi-generator-gradle-plugin/bin/
 !modules/openapi-generator-cli/src/main/resources/version.properties
 .project
 .classpath
 lib/*
 build/*
+.kotlin
 generated-files/*
 generated-sources/*
 generated-code/*
@@ -84,12 +87,23 @@ samples/client/petstore/cpp-restsdk/CMakeCache.txt
 samples/client/petstore/cpp-restsdk/CMakeFiles/
 samples/client/petstore/cpp-restsdk/Makefile
 samples/client/petstore/cpp-restsdk/cmake_install.cmake
+samples/client/petstore/cpp-restsdk/client/CMakeFiles
+samples/client/petstore/cpp-restsdk/client/Makefile
+samples/client/petstore/cpp-restsdk/client/cmake_install.cmake
+samples/client/petstore/cpp-restsdk/client/CppRestPetstoreClientConfig.cmake
+samples/client/petstore/cpp-restsdk/client/CMakeCache.txt
+
+# cpp-oatpp
+samples/client/petstore/cpp-oatpp/build
+samples/client/petstore/cpp-oatpp/external
+samples/server/petstore/cpp-oatpp/build
+samples/server/petstore/cpp-oatpp/external
 
 #Java/Android
 **/.gradle
 samples/client/petstore/java/hello.txt
 samples/client/petstore/java/okhttp-gson/hello.txt
-samples/client/petstore/java/jersey1/hello.txt
+samples/client/petstore/java/okhttp-gson-3.1/hello.txt
 samples/client/petstore/java/jersey2-java8/hello.txt
 samples/client/petstore/java/jersey2/hello.txt
 samples/client/petstore/android/default/hello.txt
@@ -173,17 +187,17 @@ samples/client/petstore/csharp-refactor/OpenAPIClient/nuget.exe
 # Python
 *.pyc
 __pycache__
+.venv/
 samples/client/petstore/python/dev-requirements.txt.log
 samples/client/petstore/python/swagger_client.egg-info/SOURCES.txt
 samples/client/petstore/python/.coverage
 samples/client/petstore/python/.projectile
-samples/client/petstore/python/.venv/
-samples/client/petstore/python-asyncio/.venv/
 samples/client/petstore/python-asyncio/.pytest_cache/
-samples/client/petstore/python-tornado/.venv/
+**/poetry.lock
 
 # PHP
 samples/client/petstore/php/OpenAPIClient-php/composer.lock
+samples/client/petstore/php-nextgen/OpenAPIClient-php/composer.lock
 samples/client/petstore/php-dt/composer.lock
 samples/client/petstore/php-dt-modern/composer.lock
 samples/openapi3/server/petstore/php-symfony/SymfonyBundle-php/composer.lock
@@ -211,6 +225,9 @@ samples/server/petstore/kotlin-server/ktor/build
 samples/server/petstore/kotlin-springboot/build
 samples/client/petstore/kotlin*/src/main/kotlin/test/
 samples/client/petstore/kotlin*/build/
+samples/server/others/kotlin-server/jaxrs-spec/build/
+samples/client/echo_api/kotlin-jvm-spring-3-restclient/build/
+samples/client/echo_api/kotlin-jvm-okhttp/build/
 
 # haskell
 .stack-work
@@ -270,6 +287,7 @@ samples/client/petstore/c/*.so
 # Ruby
 samples/openapi3/client/petstore/ruby/Gemfile.lock
 samples/openapi3/client/petstore/ruby-faraday/Gemfile.lock
+samples/openapi3/client/petstore/ruby-httpx/Gemfile.lock
 
 # Crystal
 samples/client/petstore/crystal/lib
@@ -279,3 +297,9 @@ samples/openapi3/client/petstore/go/privatekey.pem
 
 ## OCaml
 samples/client/petstore/ocaml/_build/
+samples/client/petstore/ocaml-fake-petstore/_build/
+samples/client/petstore/ocaml-oneOf-primitive/_build/
+samples/client/petstore/ocaml-additional-properties/_build/
+
+# jetbrain http client
+samples/client/jetbrains/adyen/checkout71/http/client/Apis/http-client.private.env.json

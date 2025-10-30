@@ -13,10 +13,14 @@ Method | HTTP request | Description
 # **{{{operationId}}}**
 > {{#returnType}}{{{.}}} {{/returnType}}{{{operationId}}}({{#allParams}}{{#required}}{{{paramName}}}{{/required}}{{^required}}{{{paramName}}}={{{paramName}}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}})
 
-{{{summary}}}{{#notes}}
+{{#summary}}
+{{{summary}}}
 
-{{{.}}}{{/notes}}
+{{/summary}}
+{{#unescapedNotes}}
+{{{.}}}
 
+{{/unescapedNotes}}
 ### Example
 
 {{#hasAuthMethods}}
@@ -39,7 +43,9 @@ Method | HTTP request | Description
 {{/hasAuthMethods}}
 {{> api_doc_example }}
 
+
 ### Parameters
+
 {{^allParams}}This endpoint does not need any parameter.{{/allParams}}{{#allParams}}{{#-last}}
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------{{/-last}}{{/allParams}}
@@ -61,6 +67,7 @@ Name | Type | Description  | Notes
 
 {{#responses.0}}
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 {{#responses}}

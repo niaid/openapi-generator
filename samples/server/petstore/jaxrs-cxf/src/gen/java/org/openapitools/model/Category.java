@@ -11,9 +11,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Category  {
   
   @ApiModelProperty(value = "")
+
   private Long id;
 
   @ApiModelProperty(required = true, value = "")
+
   private String name = "default-name";
  /**
    * Get id
@@ -61,8 +63,8 @@ public class Category  {
       return false;
     }
     Category category = (Category) o;
-    return Objects.equals(id, category.id) &&
-        Objects.equals(name, category.name);
+    return Objects.equals(this.id, category.id) &&
+        Objects.equals(this.name, category.name);
   }
 
   @Override

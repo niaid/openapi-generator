@@ -11,9 +11,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ReadOnlyFirst  {
   
   @ApiModelProperty(value = "")
+
   private String bar;
 
   @ApiModelProperty(value = "")
+
   private String baz;
  /**
    * Get bar
@@ -52,8 +54,8 @@ public class ReadOnlyFirst  {
       return false;
     }
     ReadOnlyFirst readOnlyFirst = (ReadOnlyFirst) o;
-    return Objects.equals(bar, readOnlyFirst.bar) &&
-        Objects.equals(baz, readOnlyFirst.baz);
+    return Objects.equals(this.bar, readOnlyFirst.bar) &&
+        Objects.equals(this.baz, readOnlyFirst.baz);
   }
 
   @Override

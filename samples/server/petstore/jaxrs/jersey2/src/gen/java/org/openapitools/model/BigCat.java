@@ -30,7 +30,7 @@ import javax.validation.Valid;
 @JsonPropertyOrder({
   BigCat.JSON_PROPERTY_KIND
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaJerseyServerCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 public class BigCat extends Cat  {
   /**
    * Gets or Sets kind
@@ -50,8 +50,12 @@ public class BigCat extends Cat  {
       this.value = value;
     }
 
-    @Override
     @JsonValue
+    public String getValue() {
+      return value;
+    }
+
+    @Override
     public String toString() {
       return String.valueOf(value);
     }
@@ -101,7 +105,7 @@ public class BigCat extends Cat  {
       return false;
     }
     BigCat bigCat = (BigCat) o;
-    return super.equals(o) && Objects.equals(kind, bigCat.kind);
+    return super.equals(o) && Objects.equals(this.kind, bigCat.kind);
   }
 
   @Override

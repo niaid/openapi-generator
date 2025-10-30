@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Dog extends Animal {
   
   @ApiModelProperty(value = "")
+
   private String breed;
  /**
    * Get breed
@@ -40,7 +41,7 @@ public class Dog extends Animal {
       return false;
     }
     Dog dog = (Dog) o;
-    return Objects.equals(breed, dog.breed) &&
+    return Objects.equals(this.breed, dog.breed) &&
         super.equals(o);
   }
 

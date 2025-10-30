@@ -9,20 +9,27 @@ set -e
 
 export NODE_ENV=test
 
-function cleanup {
-  # Show logs of 'petstore.swagger' container to troubleshoot Unit Test failures, if any.
-  if [ "$NODE_INDEX" != "4" ]; then
-    docker logs petstore.swagger # container name specified in circle.yml
-  fi
-}
-
-trap cleanup EXIT
-
 if [ "$NODE_INDEX" = "1" ]; then
-  echo "Running node $NODE_INDEX to test 'samples.circleci' defined in pom.xml ..."
+  echo "Running node $NODE_INDEX ..."
   java -version
 
-  ./mvnw --no-snapshot-updates --quiet verify -Psamples.circleci -Dorg.slf4j.simpleLogger.defaultLogLevel=error
+  sudo apt-get -y install cpanminus
+
+  # install rust
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  source "$HOME/.cargo/env"
+
+  echo "Testing perl"
+  (cd samples/client/petstore/perl && /bin/bash ./test.bash)
+
+  echo "Testing ruby"
+  (cd samples/client/petstore/ruby && mvn integration-test)
+  (cd samples/client/petstore/ruby-faraday && mvn integration-test)
+  (cd samples/client/petstore/ruby-httpx && mvn integration-test)
+  (cd samples/client/petstore/ruby-autoload && mvn integration-test)
+
+  echo "Testing rust"
+  (cd samples/server/petstore/rust-axum && mvn integration-test)
 
 elif [ "$NODE_INDEX" = "2" ]; then
   echo "Running node $NODE_INDEX to test Go"
@@ -42,20 +49,18 @@ elif [ "$NODE_INDEX" = "2" ]; then
   export PATH="/usr/local/go1.18/go/bin:$PATH"
   go version
 
-  # run integration tests
-  ./mvnw --no-snapshot-updates --quiet verify -Psamples.misc -Dorg.slf4j.simpleLogger.defaultLogLevel=error
+  # install cpprestsdk
+  sudo apt-get install libcpprest-dev
+  wget "https://github.com/aminya/setup-cpp/releases/download/v0.37.0/setup-cpp-x64-linux"
+  chmod +x ./setup-cpp-x64-linux
+  sudo ./setup-cpp-x64-linux --compiler llvm --cmake true --ninja true
+  source ~/.cpprc # activate cpp environment variables
+
+  (cd samples/client/petstore/cpp-restsdk/client && mvn integration-test)
+
 elif [ "$NODE_INDEX" = "3" ]; then
 
-  echo "Running node $NODE_INDEX to test 'samples.circleci.node3' defined in pom.xml ..."
-  #wget https://www.python.org/ftp/python/3.8.9/Python-3.8.9.tgz
-  #tar -xf Python-3.8.9.tgz
-  #cd Python-3.8.9
-  #./configure --enable-optimizations
-  #sudo make altinstall
-  pyenv install --list 
-  pyenv install 3.7.12
-  #pyenv install 2.7.14 #python2 no longer supported
-  pyenv global 3.7.12
+  echo "Running node $NODE_INDEX ... "
 
   # Install node@stable (for angular 6)
   set +e
@@ -64,31 +69,51 @@ elif [ "$NODE_INDEX" = "3" ]; then
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   #nvm install stable
   # install v16 instead of the latest stable version
-  nvm install 16
-  nvm alias default 16
+  nvm install 18
+  nvm alias default 18
   node --version
 
   # Each step uses the same `$BASH_ENV`, so need to modify it
   echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
   echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
 
-  ./mvnw --no-snapshot-updates --quiet verify -Psamples.circleci.node3 -Dorg.slf4j.simpleLogger.defaultLogLevel=error
-
-elif [ "$NODE_INDEX" = "4" ]; then
-  echo "Running node $NODE_INDEX to test 'samples.circleci.node4' defined in pom.xml ..."
-
-  #mvn --no-snapshot-updates --quiet verify -Psamples.circleci.node4 -Dorg.slf4j.simpleLogger.defaultLogLevel=error
-  #(cd samples/openapi3/client/petstore/python && make test)
-  # comment out due to ModuleNotFoundError: No module named 'urllib3.request'
-  #(cd samples/openapi3/client/petstore/python-prior && make test)
-  #(cd samples/openapi3/client/3_0_3_unit_test/python && make test)
+  (cd samples/client/others/typescript-angular && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v12-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v13-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v14-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v15-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v16-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v17-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v18-provided-in-root && mvn integration-test)
+  (cd samples/client/petstore/typescript-angular-v19-provided-in-root && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/builds/default && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/tests/default && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/builds/jquery && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/tests/jquery && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/builds/object_params && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/tests/object_params && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/builds/inversify && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/tests/inversify && mvn integration-test)
+  #(cd samples/openapi3/client/petstore/typescript/tests/deno && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/builds/browser && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/tests/browser && mvn integration-test)
+  (cd samples/openapi3/client/petstore/typescript/builds/nullable-enum && mvn integration-test)
+  (cd samples/client/petstore/typescript-fetch/builds/default && mvn integration-test)
+  (cd samples/client/petstore/typescript-fetch/builds/es6-target && mvn integration-test)
+  (cd samples/client/petstore/typescript-fetch/builds/with-npm-version && mvn integration-test)
+  (cd samples/client/petstore/typescript-fetch/tests/default && mvn integration-test)
+  (cd samples/client/petstore/typescript-node/npm && mvn integration-test)
+  (cd samples/client/petstore/typescript-rxjs/builds/with-npm-version && mvn integration-test)
+  (cd samples/client/petstore/typescript-axios/builds/with-npm-version && mvn integration-test)
+  (cd samples/client/petstore/typescript-axios/tests/default && mvn integration-test)
+  (cd samples/client/petstore/typescript-axios/tests/with-complex-headers && mvn integration-test)
+  (cd samples/client/petstore/javascript-flowtyped && mvn integration-test)
+  (cd samples/client/petstore/javascript-es6 && mvn integration-test)
+  (cd samples/client/petstore/javascript-promise-es6 && mvn integration-test)
+  (cd samples/server/petstore/typescript-nestjs-server && mvn integration-test)
 
 else
-  echo "Running node $NODE_INDEX to test 'samples.circleci.others' defined in pom.xml ..."
+  echo "Running node $NODE_INDEX ..."
   java -version
 
-  ./mvnw --no-snapshot-updates --quiet verify -Psamples.circleci.others -Dorg.slf4j.simpleLogger.defaultLogLevel=error
-  ./mvnw --no-snapshot-updates --quiet javadoc:javadoc -Psamples.circleci -Dorg.slf4j.simpleLogger.defaultLogLevel=error
 fi
-
-

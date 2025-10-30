@@ -46,6 +46,7 @@ LIONS(String.valueOf("lions")), TIGERS(String.valueOf("tigers")), LEOPARDS(Strin
 }
 
   @ApiModelProperty(value = "")
+
   private KindEnum kind;
  /**
    * Get kind
@@ -77,7 +78,7 @@ LIONS(String.valueOf("lions")), TIGERS(String.valueOf("tigers")), LEOPARDS(Strin
       return false;
     }
     BigCat bigCat = (BigCat) o;
-    return Objects.equals(kind, bigCat.kind) &&
+    return Objects.equals(this.kind, bigCat.kind) &&
         super.equals(o);
   }
 

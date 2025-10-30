@@ -16,8 +16,10 @@ import java.util.concurrent.CompletableFuture;
 {{/supportAsync}}
 {{#useBeanValidation}}
 import {{javaxPackage}}.validation.constraints.*;
+import {{javaxPackage}}.validation.Valid;
 {{/useBeanValidation}}
 {{>generatedAnnotation}}
+
 {{#operations}}
 public class {{classname}}ControllerImp {{#useInterfaces}}extends {{classname}}ControllerImpInterface{{/useInterfaces}} {
 {{#operation}}

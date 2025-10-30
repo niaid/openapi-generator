@@ -36,6 +36,10 @@ public class AbstractRustCodegenTest {
         // Hyphens should be replaced (https://github.com/OpenAPITools/openapi-generator/commit/4cb7f1d6135aa3a42ff38cf89771105c40e7e5a9)
         Assert.assertEquals(sanitizeSnakeCase.apply("pet-name"), "pet_name");
 
+        // Periods should be replaced with underscores (https://github.com/OpenAPITools/openapi-generator/issues/15254)
+        Assert.assertEquals(sanitizeSnakeCase.apply("microsoft.graph.fido2AuthenticationMethod"), "microsoft_graph_fido2_authentication_method");
+        Assert.assertEquals(sanitizeCamelCase.apply("microsoft.graph.user"), "MicrosoftGraphUser");
+
         // Special character mappings are applied
         Assert.assertEquals(sanitizeSnakeCase.apply("@type"), "at_type");
         Assert.assertEquals(sanitizeCamelCase.apply("@type"), "AtType");
@@ -121,13 +125,17 @@ public class AbstractRustCodegenTest {
         // Empty strings need to be mapped to "Empty"
         // https://github.com/OpenAPITools/openapi-generator/issues/13453
         Assert.assertEquals(codegen.toEnumVarName("", null), "Empty");
+        // Reserved words should be sanitized properly
+        // https://github.com/OpenAPITools/openapi-generator/pull/15710
+        Assert.assertEquals(codegen.toEnumVarName("type", null), "Type");
+        Assert.assertEquals(codegen.toEnumVarName("Self", null), "VariantSelf");
     }
 
     @Test
     public void testToEnumName() {
         Function<String, String> toEnumName = (String name) -> {
             CodegenProperty property = new CodegenProperty();
-            property.name = name;
+            property.baseName = name;
             return codegen.toEnumName(property);
         };
         // Should be converted to camel case

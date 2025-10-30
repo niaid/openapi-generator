@@ -4,8 +4,9 @@
 
 use async_trait::async_trait;
 use futures::{future, Stream, StreamExt, TryFutureExt, TryStreamExt};
-use hyper::server::conn::Http;
-use hyper::service::Service;
+use hyper::server::conn::http1;
+use hyper_util::rt::TokioIo;
+use hyper::service::{service_fn, Service};
 use log::info;
 use std::future::Future;
 use std::marker::PhantomData;
@@ -24,12 +25,12 @@ use ops_v3::models;
 
 /// Builds an SSL implementation for Simple HTTPS from some hard-coded file names
 pub async fn create(addr: &str, https: bool) {
-    let addr = addr.parse().expect("Failed to parse bind address");
+    let addr: SocketAddr = addr.parse().expect("Failed to parse bind address");
+    let listener = TcpListener::bind(&addr).await.unwrap();
 
     let server = Server::new();
 
     let service = MakeService::new(server);
-
     let service = MakeAllowAllAuthenticator::new(service, "cosmo");
 
     #[allow(unused_mut)]
@@ -54,20 +55,19 @@ pub async fn create(addr: &str, https: bool) {
             ssl.check_private_key().expect("Failed to check private key");
 
             let tls_acceptor = ssl.build();
-            let tcp_listener = TcpListener::bind(&addr).await.unwrap();
 
+            info!("Starting a server (with https)");
             loop {
-                if let Ok((tcp, _)) = tcp_listener.accept().await {
+                if let Ok((tcp, addr)) = listener.accept().await {
                     let ssl = Ssl::new(tls_acceptor.context()).unwrap();
-                    let addr = tcp.peer_addr().expect("Unable to get remote address");
                     let service = service.call(addr);
 
                     tokio::spawn(async move {
                         let tls = tokio_openssl::SslStream::new(ssl, tcp).map_err(|_| ())?;
                         let service = service.await.map_err(|_| ())?;
 
-                        Http::new()
-                            .serve_connection(tls, service)
+                        http1::Builder::new()
+                            .serve_connection(TokioIo::new(tls), service)
                             .await
                             .map_err(|_| ())
                     });
@@ -75,12 +75,43 @@ pub async fn create(addr: &str, https: bool) {
             }
         }
     } else {
+        info!("Starting a server (over http, so no TLS)");
         // Using HTTP
-        hyper::server::Server::bind(&addr).serve(service).await.unwrap()
+        let listener = TcpListener::bind(&addr).await.unwrap();
+        println!("Listening on http://{}", addr);
+
+        loop {
+            // When an incoming TCP connection is received grab a TCP stream for
+            // client<->server communication.
+            //
+            // Note, this is a .await point, this loop will loop forever but is not a busy loop. The
+            // .await point allows the Tokio runtime to pull the task off of the thread until the task
+            // has work to do. In this case, a connection arrives on the port we are listening on and
+            // the task is woken up, at which point the task is then put back on a thread, and is
+            // driven forward by the runtime, eventually yielding a TCP stream.
+            let (tcp_stream, addr) = listener.accept().await.expect("Failed to accept connection");
+
+            let service = service.call(addr).await.unwrap();
+            let io = TokioIo::new(tcp_stream);
+            // Spin up a new task in Tokio so we can continue to listen for new TCP connection on the
+            // current task without waiting for the processing of the HTTP1 connection we just received
+            // to finish
+            tokio::task::spawn(async move {
+                // Handle the connection from the client using HTTP1 and pass any
+                // HTTP requests received on that connection to the `hello` function
+                let result = http1::Builder::new()
+                    .serve_connection(io, service)
+                    .await;
+                if let Err(err) = result
+                {
+                    println!("Error serving connection: {err:?}");
+                }
+            });
+        }
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy)]
 pub struct Server<C> {
     marker: PhantomData<C>,
 }
@@ -90,6 +121,20 @@ impl<C> Server<C> {
         Server{marker: PhantomData}
     }
 }
+
+impl<C> Clone for Server<C> {
+    fn clone(&self) -> Self {
+        Self {
+            marker: PhantomData,
+        }
+    }
+}
+
+
+use jsonwebtoken::{decode, encode, errors::Error as JwtError, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
+use serde::{Deserialize, Serialize};
+use swagger::auth::Authorization;
+use crate::server_auth;
 
 
 use ops_v3::{
@@ -143,333 +188,296 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         &self,
         context: &C) -> Result<Op10GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op10_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op11_get(
         &self,
         context: &C) -> Result<Op11GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op11_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op12_get(
         &self,
         context: &C) -> Result<Op12GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op12_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op13_get(
         &self,
         context: &C) -> Result<Op13GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op13_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op14_get(
         &self,
         context: &C) -> Result<Op14GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op14_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op15_get(
         &self,
         context: &C) -> Result<Op15GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op15_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op16_get(
         &self,
         context: &C) -> Result<Op16GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op16_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op17_get(
         &self,
         context: &C) -> Result<Op17GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op17_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op18_get(
         &self,
         context: &C) -> Result<Op18GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op18_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op19_get(
         &self,
         context: &C) -> Result<Op19GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op19_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op1_get(
         &self,
         context: &C) -> Result<Op1GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op1_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op20_get(
         &self,
         context: &C) -> Result<Op20GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op20_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op21_get(
         &self,
         context: &C) -> Result<Op21GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op21_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op22_get(
         &self,
         context: &C) -> Result<Op22GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op22_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op23_get(
         &self,
         context: &C) -> Result<Op23GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op23_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op24_get(
         &self,
         context: &C) -> Result<Op24GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op24_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op25_get(
         &self,
         context: &C) -> Result<Op25GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op25_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op26_get(
         &self,
         context: &C) -> Result<Op26GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op26_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op27_get(
         &self,
         context: &C) -> Result<Op27GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op27_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op28_get(
         &self,
         context: &C) -> Result<Op28GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op28_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op29_get(
         &self,
         context: &C) -> Result<Op29GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op29_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op2_get(
         &self,
         context: &C) -> Result<Op2GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op2_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op30_get(
         &self,
         context: &C) -> Result<Op30GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op30_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op31_get(
         &self,
         context: &C) -> Result<Op31GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op31_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op32_get(
         &self,
         context: &C) -> Result<Op32GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op32_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op33_get(
         &self,
         context: &C) -> Result<Op33GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op33_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op34_get(
         &self,
         context: &C) -> Result<Op34GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op34_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op35_get(
         &self,
         context: &C) -> Result<Op35GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op35_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op36_get(
         &self,
         context: &C) -> Result<Op36GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op36_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op37_get(
         &self,
         context: &C) -> Result<Op37GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op37_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op3_get(
         &self,
         context: &C) -> Result<Op3GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op3_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op4_get(
         &self,
         context: &C) -> Result<Op4GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op4_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op5_get(
         &self,
         context: &C) -> Result<Op5GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op5_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op6_get(
         &self,
         context: &C) -> Result<Op6GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op6_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op7_get(
         &self,
         context: &C) -> Result<Op7GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op7_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op8_get(
         &self,
         context: &C) -> Result<Op8GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op8_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
     async fn op9_get(
         &self,
         context: &C) -> Result<Op9GetResponse, ApiError>
     {
-        let context = context.clone();
         info!("op9_get() - X-Span-ID: {:?}", context.get().0.clone());
-        Err(ApiError("Generic failure".into()))
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
 }

@@ -1,6 +1,7 @@
 package org.openapitools.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.openapitools.model.ModelFile;
 import javax.validation.constraints.*;
@@ -14,12 +15,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class FileSchemaTestClass  {
   
   @ApiModelProperty(value = "")
+
   @Valid
+
   private ModelFile _file;
 
   @ApiModelProperty(value = "")
+
   @Valid
-  private List<ModelFile> files;
+
+  private List<@Valid ModelFile> files = new ArrayList<>();
  /**
    * Get _file
    * @return _file
@@ -43,15 +48,15 @@ public class FileSchemaTestClass  {
    * @return files
   **/
   @JsonProperty("files")
-  public List<ModelFile> getFiles() {
+  public List<@Valid ModelFile> getFiles() {
     return files;
   }
 
-  public void setFiles(List<ModelFile> files) {
+  public void setFiles(List<@Valid ModelFile> files) {
     this.files = files;
   }
 
-  public FileSchemaTestClass files(List<ModelFile> files) {
+  public FileSchemaTestClass files(List<@Valid ModelFile> files) {
     this.files = files;
     return this;
   }
@@ -70,8 +75,8 @@ public class FileSchemaTestClass  {
       return false;
     }
     FileSchemaTestClass fileSchemaTestClass = (FileSchemaTestClass) o;
-    return Objects.equals(_file, fileSchemaTestClass._file) &&
-        Objects.equals(files, fileSchemaTestClass.files);
+    return Objects.equals(this._file, fileSchemaTestClass._file) &&
+        Objects.equals(this.files, fileSchemaTestClass.files);
   }
 
   @Override

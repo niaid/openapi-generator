@@ -24,13 +24,12 @@ import java.util.*;
 
 public class CodegenOperation {
     public final List<CodegenProperty> responseHeaders = new ArrayList<CodegenProperty>();
-    public boolean hasAuthMethods, hasConsumes, hasProduces, hasParams, hasOptionalParams, hasRequiredParams,
+    public boolean hasAuthMethods, hasConsumes, hasProduces, hasOptionalParams,
             returnTypeIsPrimitive, returnSimpleType, subresourceOperation, isMap,
             isArray, isMultipart, isVoid = false,
             hasVersionHeaders = false, hasVersionQueryParams = false,
             isResponseBinary = false, isResponseFile = false, isResponseOptional = false, hasReference = false, defaultReturnType = false,
-            isRestfulIndex, isRestfulShow, isRestfulCreate, isRestfulUpdate, isRestfulDestroy,
-            isRestful, isDeprecated, isCallbackRequest, uniqueItems, hasDefaultResponse = false,
+            isDeprecated, isCallbackRequest, uniqueItems,
             hasErrorResponseObject; // if 4xx, 5xx responses have at least one error object defined
     public CodegenProperty returnProperty;
     public String path, operationId, returnType, returnFormat, httpMethod, returnBaseType,
@@ -45,6 +44,7 @@ public class CodegenOperation {
     public List<CodegenParameter> queryParams = new ArrayList<CodegenParameter>();
     public List<CodegenParameter> headerParams = new ArrayList<CodegenParameter>();
     public List<CodegenParameter> implicitHeadersParams = new ArrayList<CodegenParameter>();
+    public List<CodegenParameter> constantParams = new ArrayList<CodegenParameter>();
     public List<CodegenParameter> formParams = new ArrayList<CodegenParameter>();
     public List<CodegenParameter> cookieParams = new ArrayList<CodegenParameter>();
     public List<CodegenParameter> requiredParams = new ArrayList<CodegenParameter>();
@@ -80,12 +80,48 @@ public class CodegenOperation {
     }
 
     /**
+     * Check if there's at least one parameter
+     *
+     * @return true if parameter exists, false otherwise
+     */
+    public boolean getHasParams() {
+        return nonEmpty(allParams);
+    }
+
+    /**
+     * Check if there's at least one required parameter
+     *
+     * @return true if required parameter exists, false otherwise
+     */
+    public boolean getHasRequiredParam() {
+        return nonEmpty(requiredParams);
+    }
+
+    /**
+     * Check if there's exactly one parameter
+     *
+     * @return true if exactly one parameter exists, false otherwise
+     */
+    public boolean getHasSingleParam() {
+        return allParams.size() == 1;
+    }
+
+    /**
      * Check if there's at least one body parameter
      *
      * @return true if body parameter exists, false otherwise
      */
     public boolean getHasBodyParam() {
         return nonEmpty(bodyParams);
+    }
+
+    /**
+     * Check if there's at least one optional body parameter
+     *
+     * @return true if optional body parameter exists, false otherwise
+     */
+    public boolean getHasOptionalBodyParam() {
+        return nonEmpty(bodyParams) && nonEmpty(optionalParams) && bodyParams.stream().anyMatch(optionalParams::contains);
     }
 
     /**
@@ -152,6 +188,15 @@ public class CodegenOperation {
     }
 
     /**
+     * Check if there's at least one parameter which is not a body parameter
+     *
+     * @return true if any non body parameter exists, false otherwise
+     */
+    public boolean getHasNonBodyParams() {
+        return nonEmpty(queryParams) || nonEmpty(headerParams) || nonEmpty(pathParams) || nonEmpty(cookieParams) || nonEmpty(formParams);
+    }
+
+    /**
      * Check if there's at least one optional parameter
      *
      * @return true if any optional parameter exists, false otherwise
@@ -204,6 +249,15 @@ public class CodegenOperation {
         return responses.stream().anyMatch(response -> response.isDefault);
     }
 
+    /**
+     * Check if the responses contain only 1 entry and it's default
+     *
+     * @return true if responses contain only 1 entry and it's a default response, false otherwise
+     */
+    public boolean getHasOnlyDefaultResponse() {
+        return responses.size() == 1 && getHasDefaultResponse();
+    }
+
     public boolean getAllResponsesAreErrors() {
         return responses.stream().allMatch(response -> response.is4xx || response.is5xx);
     }
@@ -219,7 +273,7 @@ public class CodegenOperation {
             return null;
         }
         LinkedHashMap<String, CodegenMediaType> content = bodyParam.getContent();
-        for (String contentType: content.keySet()) {
+        for (String contentType : content.keySet()) {
             contentTypeToOperation.put(contentType, this);
         }
         return contentTypeToOperation;
@@ -298,6 +352,24 @@ public class CodegenOperation {
     }
 
     /**
+     * Check if operation produces text/plain responses.
+     * NOTE: This does not mean it _only_ produces text/plain, just that it is one of the produces types.
+     *
+     * @return true if at least one produces is text/plain
+     */
+    public boolean producesTextPlain() {
+        if (produces != null) {
+            for (Map<String, String> produce : produces) {
+                if ("text/plain".equalsIgnoreCase(produce.get("mediaType").split(";")[0].trim())
+                        && "String".equals(returnType)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get the substring except baseName from path
      *
      * @return the substring
@@ -324,9 +396,7 @@ public class CodegenOperation {
         sb.append(", hasAuthMethods=").append(hasAuthMethods);
         sb.append(", hasConsumes=").append(hasConsumes);
         sb.append(", hasProduces=").append(hasProduces);
-        sb.append(", hasParams=").append(hasParams);
         sb.append(", hasOptionalParams=").append(hasOptionalParams);
-        sb.append(", hasRequiredParams=").append(hasRequiredParams);
         sb.append(", returnTypeIsPrimitive=").append(returnTypeIsPrimitive);
         sb.append(", returnSimpleType=").append(returnSimpleType);
         sb.append(", subresourceOperation=").append(subresourceOperation);
@@ -337,16 +407,9 @@ public class CodegenOperation {
         sb.append(", isVoid=").append(isVoid);
         sb.append(", isResponseBinary=").append(isResponseBinary);
         sb.append(", isResponseFile=").append(isResponseFile);
-        sb.append(", isResponseFile=").append(isResponseOptional);
+        sb.append(", isResponseOptional=").append(isResponseOptional);
         sb.append(", hasReference=").append(hasReference);
-        sb.append(", hasDefaultResponse=").append(hasDefaultResponse);
         sb.append(", hasErrorResponseObject=").append(hasErrorResponseObject);
-        sb.append(", isRestfulIndex=").append(isRestfulIndex);
-        sb.append(", isRestfulShow=").append(isRestfulShow);
-        sb.append(", isRestfulCreate=").append(isRestfulCreate);
-        sb.append(", isRestfulUpdate=").append(isRestfulUpdate);
-        sb.append(", isRestfulDestroy=").append(isRestfulDestroy);
-        sb.append(", isRestful=").append(isRestful);
         sb.append(", isDeprecated=").append(isDeprecated);
         sb.append(", isCallbackRequest=").append(isCallbackRequest);
         sb.append(", uniqueItems='").append(uniqueItems);
@@ -392,6 +455,7 @@ public class CodegenOperation {
         sb.append(", operationIdLowerCase='").append(operationIdLowerCase).append('\'');
         sb.append(", operationIdCamelCase='").append(operationIdCamelCase).append('\'');
         sb.append(", operationIdSnakeCase='").append(operationIdSnakeCase).append('\'');
+        sb.append(", constantParams='").append(constantParams).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -404,9 +468,7 @@ public class CodegenOperation {
         return hasAuthMethods == that.hasAuthMethods &&
                 hasConsumes == that.hasConsumes &&
                 hasProduces == that.hasProduces &&
-                hasParams == that.hasParams &&
                 hasOptionalParams == that.hasOptionalParams &&
-                hasRequiredParams == that.hasRequiredParams &&
                 returnTypeIsPrimitive == that.returnTypeIsPrimitive &&
                 returnSimpleType == that.returnSimpleType &&
                 subresourceOperation == that.subresourceOperation &&
@@ -418,14 +480,7 @@ public class CodegenOperation {
                 isResponseFile == that.isResponseFile &&
                 isResponseOptional == that.isResponseOptional &&
                 hasReference == that.hasReference &&
-                hasDefaultResponse == that.hasDefaultResponse &&
                 hasErrorResponseObject == that.hasErrorResponseObject &&
-                isRestfulIndex == that.isRestfulIndex &&
-                isRestfulShow == that.isRestfulShow &&
-                isRestfulCreate == that.isRestfulCreate &&
-                isRestfulUpdate == that.isRestfulUpdate &&
-                isRestfulDestroy == that.isRestfulDestroy &&
-                isRestful == that.isRestful &&
                 isDeprecated == that.isDeprecated &&
                 isCallbackRequest == that.isCallbackRequest &&
                 uniqueItems == that.uniqueItems &&
@@ -472,22 +527,22 @@ public class CodegenOperation {
                 Objects.equals(operationIdOriginal, that.operationIdOriginal) &&
                 Objects.equals(operationIdLowerCase, that.operationIdLowerCase) &&
                 Objects.equals(operationIdCamelCase, that.operationIdCamelCase) &&
-                Objects.equals(operationIdSnakeCase, that.operationIdSnakeCase);
+                Objects.equals(operationIdSnakeCase, that.operationIdSnakeCase) &&
+                Objects.equals(constantParams, that.constantParams);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(responseHeaders, hasAuthMethods, hasConsumes, hasProduces, hasParams, hasOptionalParams,
-                hasRequiredParams, returnTypeIsPrimitive, returnSimpleType, subresourceOperation, isMap,
+        return Objects.hash(responseHeaders, hasAuthMethods, hasConsumes, hasProduces, hasOptionalParams,
+                returnTypeIsPrimitive, returnSimpleType, subresourceOperation, isMap,
                 isArray, isMultipart, isVoid, isResponseBinary, isResponseFile, isResponseOptional, hasReference,
-                hasDefaultResponse, isRestfulIndex, isRestfulShow, isRestfulCreate, isRestfulUpdate, isRestfulDestroy,
-                isRestful, isDeprecated, isCallbackRequest, uniqueItems, path, operationId, returnType, httpMethod,
+                isDeprecated, isCallbackRequest, uniqueItems, path, operationId, returnType, httpMethod,
                 returnBaseType, returnContainer, summary, unescapedNotes, notes, baseName, defaultResponse,
                 discriminator, consumes, produces, prioritizedContentTypes, servers, bodyParam, allParams, bodyParams,
                 pathParams, queryParams, headerParams, formParams, cookieParams, requiredParams, returnProperty, optionalParams,
                 authMethods, tags, responses, callbacks, imports, examples, requestBodyExamples, externalDocs,
                 vendorExtensions, nickname, operationIdOriginal, operationIdLowerCase, operationIdCamelCase,
-                operationIdSnakeCase, hasErrorResponseObject, requiredAndNotNullableParams, notNullableParams);
+                operationIdSnakeCase, hasErrorResponseObject, requiredAndNotNullableParams, notNullableParams, constantParams);
     }
 }

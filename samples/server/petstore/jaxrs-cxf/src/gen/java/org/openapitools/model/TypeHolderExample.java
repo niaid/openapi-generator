@@ -2,6 +2,7 @@ package org.openapitools.model;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
@@ -14,22 +15,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TypeHolderExample  {
   
   @ApiModelProperty(example = "what", required = true, value = "")
+
   private String stringItem;
 
   @ApiModelProperty(example = "1.234", required = true, value = "")
+
   @Valid
+
   private BigDecimal numberItem;
 
   @ApiModelProperty(example = "1.234", required = true, value = "")
+
   private Float floatItem;
 
   @ApiModelProperty(example = "-2", required = true, value = "")
+
   private Integer integerItem;
 
   @ApiModelProperty(example = "true", required = true, value = "")
+
   private Boolean boolItem;
 
   @ApiModelProperty(example = "[0, 1, 2, 3]", required = true, value = "")
+
   private List<Integer> arrayItem = new ArrayList<>();
  /**
    * Get stringItem
@@ -159,12 +167,12 @@ public class TypeHolderExample  {
       return false;
     }
     TypeHolderExample typeHolderExample = (TypeHolderExample) o;
-    return Objects.equals(stringItem, typeHolderExample.stringItem) &&
-        Objects.equals(numberItem, typeHolderExample.numberItem) &&
-        Objects.equals(floatItem, typeHolderExample.floatItem) &&
-        Objects.equals(integerItem, typeHolderExample.integerItem) &&
-        Objects.equals(boolItem, typeHolderExample.boolItem) &&
-        Objects.equals(arrayItem, typeHolderExample.arrayItem);
+    return Objects.equals(this.stringItem, typeHolderExample.stringItem) &&
+        Objects.equals(this.numberItem, typeHolderExample.numberItem) &&
+        Objects.equals(this.floatItem, typeHolderExample.floatItem) &&
+        Objects.equals(this.integerItem, typeHolderExample.integerItem) &&
+        Objects.equals(this.boolItem, typeHolderExample.boolItem) &&
+        Objects.equals(this.arrayItem, typeHolderExample.arrayItem);
   }
 
   @Override

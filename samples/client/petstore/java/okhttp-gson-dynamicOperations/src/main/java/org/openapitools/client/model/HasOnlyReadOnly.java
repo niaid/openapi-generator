@@ -14,13 +14,14 @@
 package org.openapitools.client.model;
 
 import java.util.Objects;
-import java.util.Arrays;
+import java.util.Locale;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,33 +38,33 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Locale;
 
 import org.openapitools.client.JSON;
 
 /**
  * HasOnlyReadOnly
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 public class HasOnlyReadOnly {
   public static final String SERIALIZED_NAME_BAR = "bar";
   @SerializedName(SERIALIZED_NAME_BAR)
+  @javax.annotation.Nullable
   private String bar;
 
   public static final String SERIALIZED_NAME_FOO = "foo";
   @SerializedName(SERIALIZED_NAME_FOO)
+  @javax.annotation.Nullable
   private String foo;
 
   public HasOnlyReadOnly() {
   }
 
-  
   public HasOnlyReadOnly(
      String bar, 
      String foo
@@ -73,10 +74,10 @@ public class HasOnlyReadOnly {
     this.foo = foo;
   }
 
-   /**
+  /**
    * Get bar
    * @return bar
-  **/
+   */
   @javax.annotation.Nullable
   public String getBar() {
     return bar;
@@ -84,16 +85,14 @@ public class HasOnlyReadOnly {
 
 
 
-
-   /**
+  /**
    * Get foo
    * @return foo
-  **/
+   */
   @javax.annotation.Nullable
   public String getFoo() {
     return foo;
   }
-
 
 
 
@@ -143,39 +142,38 @@ public class HasOnlyReadOnly {
 
   static {
     // a set of all properties/fields (JSON key names)
-    openapiFields = new HashSet<String>();
-    openapiFields.add("bar");
-    openapiFields.add("foo");
+    openapiFields = new HashSet<String>(Arrays.asList("bar", "foo"));
 
     // a set of required properties/fields (JSON key names)
-    openapiRequiredFields = new HashSet<String>();
+    openapiRequiredFields = new HashSet<String>(0);
   }
 
- /**
-  * Validates the JSON Object and throws an exception if issues found
-  *
-  * @param jsonObj JSON Object
-  * @throws IOException if the JSON Object is invalid with respect to HasOnlyReadOnly
-  */
-  public static void validateJsonObject(JsonObject jsonObj) throws IOException {
-      if (jsonObj == null) {
-        if (!HasOnlyReadOnly.openapiRequiredFields.isEmpty()) { // has required fields but JSON object is null
-          throw new IllegalArgumentException(String.format("The required field(s) %s in HasOnlyReadOnly is not found in the empty JSON string", HasOnlyReadOnly.openapiRequiredFields.toString()));
+  /**
+   * Validates the JSON Element and throws an exception if issues found
+   *
+   * @param jsonElement JSON Element
+   * @throws IOException if the JSON Element is invalid with respect to HasOnlyReadOnly
+   */
+  public static void validateJsonElement(JsonElement jsonElement) throws IOException {
+      if (jsonElement == null) {
+        if (!HasOnlyReadOnly.openapiRequiredFields.isEmpty()) { // has required fields but JSON element is null
+          throw new IllegalArgumentException(String.format(Locale.ROOT, "The required field(s) %s in HasOnlyReadOnly is not found in the empty JSON string", HasOnlyReadOnly.openapiRequiredFields.toString()));
         }
       }
 
-      Set<Entry<String, JsonElement>> entries = jsonObj.entrySet();
+      Set<Map.Entry<String, JsonElement>> entries = jsonElement.getAsJsonObject().entrySet();
       // check to see if the JSON string contains additional fields
-      for (Entry<String, JsonElement> entry : entries) {
+      for (Map.Entry<String, JsonElement> entry : entries) {
         if (!HasOnlyReadOnly.openapiFields.contains(entry.getKey())) {
-          throw new IllegalArgumentException(String.format("The field `%s` in the JSON string is not defined in the `HasOnlyReadOnly` properties. JSON: %s", entry.getKey(), jsonObj.toString()));
+          throw new IllegalArgumentException(String.format(Locale.ROOT, "The field `%s` in the JSON string is not defined in the `HasOnlyReadOnly` properties. JSON: %s", entry.getKey(), jsonElement.toString()));
         }
       }
+        JsonObject jsonObj = jsonElement.getAsJsonObject();
       if ((jsonObj.get("bar") != null && !jsonObj.get("bar").isJsonNull()) && !jsonObj.get("bar").isJsonPrimitive()) {
-        throw new IllegalArgumentException(String.format("Expected the field `bar` to be a primitive type in the JSON string but got `%s`", jsonObj.get("bar").toString()));
+        throw new IllegalArgumentException(String.format(Locale.ROOT, "Expected the field `bar` to be a primitive type in the JSON string but got `%s`", jsonObj.get("bar").toString()));
       }
       if ((jsonObj.get("foo") != null && !jsonObj.get("foo").isJsonNull()) && !jsonObj.get("foo").isJsonPrimitive()) {
-        throw new IllegalArgumentException(String.format("Expected the field `foo` to be a primitive type in the JSON string but got `%s`", jsonObj.get("foo").toString()));
+        throw new IllegalArgumentException(String.format(Locale.ROOT, "Expected the field `foo` to be a primitive type in the JSON string but got `%s`", jsonObj.get("foo").toString()));
       }
   }
 
@@ -199,31 +197,31 @@ public class HasOnlyReadOnly {
 
            @Override
            public HasOnlyReadOnly read(JsonReader in) throws IOException {
-             JsonObject jsonObj = elementAdapter.read(in).getAsJsonObject();
-             validateJsonObject(jsonObj);
-             return thisAdapter.fromJsonTree(jsonObj);
+             JsonElement jsonElement = elementAdapter.read(in);
+             validateJsonElement(jsonElement);
+             return thisAdapter.fromJsonTree(jsonElement);
            }
 
        }.nullSafe();
     }
   }
 
- /**
-  * Create an instance of HasOnlyReadOnly given an JSON string
-  *
-  * @param jsonString JSON string
-  * @return An instance of HasOnlyReadOnly
-  * @throws IOException if the JSON string is invalid with respect to HasOnlyReadOnly
-  */
+  /**
+   * Create an instance of HasOnlyReadOnly given an JSON string
+   *
+   * @param jsonString JSON string
+   * @return An instance of HasOnlyReadOnly
+   * @throws IOException if the JSON string is invalid with respect to HasOnlyReadOnly
+   */
   public static HasOnlyReadOnly fromJson(String jsonString) throws IOException {
     return JSON.getGson().fromJson(jsonString, HasOnlyReadOnly.class);
   }
 
- /**
-  * Convert an instance of HasOnlyReadOnly to an JSON string
-  *
-  * @return JSON string
-  */
+  /**
+   * Convert an instance of HasOnlyReadOnly to an JSON string
+   *
+   * @return JSON string
+   */
   public String toJson() {
     return JSON.getGson().toJson(this);
   }

@@ -14,8 +14,10 @@ package org.openapitools.model;
 
 import java.util.Objects;
 import java.util.Arrays;
+import java.util.Locale;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.fasterxml.jackson.annotation.*;
 
@@ -35,7 +37,7 @@ import javax.annotation.Generated;
   TypeHolderDefault.JSON_PROPERTY_ARRAY_ITEM
 })
 @JsonTypeName("TypeHolderDefault")
-@Generated(value="org.openapitools.codegen.languages.JavaMicronautClientCodegen")
+@Generated(value="org.openapitools.codegen.languages.JavaMicronautClientCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 @Introspected
 public class TypeHolderDefault {
     public static final String JSON_PROPERTY_STRING_ITEM = "string_item";
@@ -63,7 +65,7 @@ public class TypeHolderDefault {
     /**
      * Get stringItem
      * @return stringItem
-     **/
+     */
     @NotNull
     @JsonProperty(JSON_PROPERTY_STRING_ITEM)
     @JsonInclude(value = JsonInclude.Include.ALWAYS)
@@ -85,7 +87,7 @@ public class TypeHolderDefault {
     /**
      * Get numberItem
      * @return numberItem
-     **/
+     */
     @NotNull
     @JsonProperty(JSON_PROPERTY_NUMBER_ITEM)
     @JsonInclude(value = JsonInclude.Include.ALWAYS)
@@ -107,7 +109,7 @@ public class TypeHolderDefault {
     /**
      * Get integerItem
      * @return integerItem
-     **/
+     */
     @NotNull
     @JsonProperty(JSON_PROPERTY_INTEGER_ITEM)
     @JsonInclude(value = JsonInclude.Include.ALWAYS)
@@ -129,7 +131,7 @@ public class TypeHolderDefault {
     /**
      * Get boolItem
      * @return boolItem
-     **/
+     */
     @NotNull
     @JsonProperty(JSON_PROPERTY_BOOL_ITEM)
     @JsonInclude(value = JsonInclude.Include.ALWAYS)
@@ -156,7 +158,7 @@ public class TypeHolderDefault {
     /**
      * Get arrayItem
      * @return arrayItem
-     **/
+     */
     @NotNull
     @JsonProperty(JSON_PROPERTY_ARRAY_ITEM)
     @JsonInclude(value = JsonInclude.Include.ALWAYS)

@@ -14,7 +14,9 @@ package org.openapitools.model;
 
 import java.util.Objects;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import com.fasterxml.jackson.annotation.*;
 
@@ -31,7 +33,7 @@ import javax.annotation.Generated;
   EnumArrays.JSON_PROPERTY_ARRAY_ENUM
 })
 @JsonTypeName("EnumArrays")
-@Generated(value="org.openapitools.codegen.languages.JavaMicronautClientCodegen")
+@Generated(value="org.openapitools.codegen.languages.JavaMicronautClientCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 @Introspected
 public class EnumArrays {
     /**
@@ -116,7 +118,7 @@ public class EnumArrays {
     /**
      * Get justSymbol
      * @return justSymbol
-     **/
+     */
     @Nullable
     @JsonProperty(JSON_PROPERTY_JUST_SYMBOL)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
@@ -146,7 +148,7 @@ public class EnumArrays {
     /**
      * Get arrayEnum
      * @return arrayEnum
-     **/
+     */
     @Nullable
     @JsonProperty(JSON_PROPERTY_ARRAY_ENUM)
     @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)

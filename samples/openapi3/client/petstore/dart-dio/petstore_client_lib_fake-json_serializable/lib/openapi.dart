@@ -5,6 +5,7 @@
 export 'package:openapi/src/api.dart';
 export 'package:openapi/src/auth/api_key_auth.dart';
 export 'package:openapi/src/auth/basic_auth.dart';
+export 'package:openapi/src/auth/bearer_auth.dart';
 export 'package:openapi/src/auth/oauth.dart';
 
 
@@ -26,6 +27,7 @@ export 'package:openapi/src/model/array_test.dart';
 export 'package:openapi/src/model/capitalization.dart';
 export 'package:openapi/src/model/cat.dart';
 export 'package:openapi/src/model/category.dart';
+export 'package:openapi/src/model/child_with_nullable.dart';
 export 'package:openapi/src/model/class_model.dart';
 export 'package:openapi/src/model/deprecated_object.dart';
 export 'package:openapi/src/model/dog.dart';
@@ -49,7 +51,10 @@ export 'package:openapi/src/model/model_return.dart';
 export 'package:openapi/src/model/name.dart';
 export 'package:openapi/src/model/nullable_class.dart';
 export 'package:openapi/src/model/number_only.dart';
+export 'package:openapi/src/model/object_that_references_objects_with_duplicate_inline_enums.dart';
 export 'package:openapi/src/model/object_with_deprecated_fields.dart';
+export 'package:openapi/src/model/object_with_duplicate_inline_enum.dart';
+export 'package:openapi/src/model/object_with_inline_enum.dart';
 export 'package:openapi/src/model/order.dart';
 export 'package:openapi/src/model/outer_composite.dart';
 export 'package:openapi/src/model/outer_enum.dart';
@@ -57,9 +62,14 @@ export 'package:openapi/src/model/outer_enum_default_value.dart';
 export 'package:openapi/src/model/outer_enum_integer.dart';
 export 'package:openapi/src/model/outer_enum_integer_default_value.dart';
 export 'package:openapi/src/model/outer_object_with_enum_property.dart';
+export 'package:openapi/src/model/parent_with_nullable.dart';
 export 'package:openapi/src/model/pet.dart';
 export 'package:openapi/src/model/read_only_first.dart';
 export 'package:openapi/src/model/single_ref_type.dart';
 export 'package:openapi/src/model/special_model_name.dart';
 export 'package:openapi/src/model/tag.dart';
+export 'package:openapi/src/model/test_enum.dart';
+export 'package:openapi/src/model/test_inline_freeform_additional_properties_request.dart';
+export 'package:openapi/src/model/test_item.dart';
 export 'package:openapi/src/model/user.dart';
+

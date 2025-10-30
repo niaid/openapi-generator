@@ -1,7 +1,7 @@
 //
 // AUTO-GENERATED FILE, DO NOT MODIFY!
 //
-// @dart=2.12
+// @dart=2.18
 
 // ignore_for_file: unused_element, unused_import
 // ignore_for_file: always_put_required_named_parameters_first
@@ -202,6 +202,8 @@ class ApiClient {
           return Cat.fromJson(value);
         case 'Category':
           return Category.fromJson(value);
+        case 'ChildWithNullable':
+          return ChildWithNullable.fromJson(value);
         case 'ClassModel':
           return ClassModel.fromJson(value);
         case 'DeprecatedObject':
@@ -248,8 +250,14 @@ class ApiClient {
           return NullableClass.fromJson(value);
         case 'NumberOnly':
           return NumberOnly.fromJson(value);
+        case 'ObjectThatReferencesObjectsWithDuplicateInlineEnums':
+          return ObjectThatReferencesObjectsWithDuplicateInlineEnums.fromJson(value);
         case 'ObjectWithDeprecatedFields':
           return ObjectWithDeprecatedFields.fromJson(value);
+        case 'ObjectWithDuplicateInlineEnum':
+          return ObjectWithDuplicateInlineEnum.fromJson(value);
+        case 'ObjectWithInlineEnum':
+          return ObjectWithInlineEnum.fromJson(value);
         case 'Order':
           return Order.fromJson(value);
         case 'OuterComposite':
@@ -264,6 +272,8 @@ class ApiClient {
           return OuterEnumIntegerDefaultValueTypeTransformer().decode(value);
         case 'OuterObjectWithEnumProperty':
           return OuterObjectWithEnumProperty.fromJson(value);
+        case 'ParentWithNullable':
+          return ParentWithNullable.fromJson(value);
         case 'Pet':
           return Pet.fromJson(value);
         case 'ReadOnlyFirst':
@@ -274,6 +284,12 @@ class ApiClient {
           return SpecialModelName.fromJson(value);
         case 'Tag':
           return Tag.fromJson(value);
+        case 'TestEnum':
+          return TestEnumTypeTransformer().decode(value);
+        case 'TestInlineFreeformAdditionalPropertiesRequest':
+          return TestInlineFreeformAdditionalPropertiesRequest.fromJson(value);
+        case 'TestItem':
+          return TestItem.fromJson(value);
         case 'User':
           return User.fromJson(value);
         default:

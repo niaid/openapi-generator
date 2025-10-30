@@ -16,39 +16,12 @@
 
 package org.openapitools.codegen.languages;
 
-import static org.openapitools.codegen.CodegenConstants.API_NAME_PREFIX;
-import static org.openapitools.codegen.CodegenConstants.API_NAME_PREFIX_DESC;
-import static org.openapitools.codegen.CodegenConstants.API_PACKAGE;
-import static org.openapitools.codegen.CodegenConstants.API_PACKAGE_DESC;
-import static org.openapitools.codegen.CodegenConstants.MODEL_PACKAGE;
-import static org.openapitools.codegen.CodegenConstants.MODEL_PACKAGE_DESC;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import org.openapitools.codegen.CliOption;
-import org.openapitools.codegen.CodegenConfig;
-import org.openapitools.codegen.CodegenModel;
-import org.openapitools.codegen.CodegenOperation;
-import org.openapitools.codegen.CodegenProperty;
-import org.openapitools.codegen.CodegenResponse;
-import org.openapitools.codegen.CodegenSecurity;
-import org.openapitools.codegen.CodegenType;
-import org.openapitools.codegen.DefaultCodegen;
-import org.openapitools.codegen.IJsonSchemaValidationProperties;
-import org.openapitools.codegen.SupportingFile;
+import org.openapitools.codegen.*;
 import org.openapitools.codegen.config.GlobalSettings;
 import org.openapitools.codegen.meta.GeneratorMetadata;
 import org.openapitools.codegen.meta.Stability;
@@ -60,11 +33,11 @@ import org.openapitools.codegen.utils.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.media.ArraySchema;
-import io.swagger.v3.oas.models.media.ComposedSchema;
-import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.parameters.Parameter;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.openapitools.codegen.CodegenConstants.*;
 
 public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
     public static final String CHECK_REQUIRED_PARAMS_NOT_NULL = "checkRequiredParamsNotNull";
@@ -79,14 +52,17 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
     private boolean checkSuperfluousBodyProps = true;
     private boolean generateDefaultApiExecuter = true;
 
+    @Override
     public CodegenType getTag() {
         return CodegenType.CLIENT;
     }
 
+    @Override
     public String getName() {
         return "n4js";
     }
 
+    @Override
     public String getHelp() {
         return "Generates a n4js client.";
     }
@@ -229,11 +205,10 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     @Override
     public String toModelFilename(String name) {
-        String modelFilename = super.toModelFilename(name);
-        if (typeMapping.containsKey(modelFilename) || defaultIncludes.contains(modelFilename)) {
-            return modelFilename;
+        if (typeMapping.containsKey(name) || defaultIncludes.contains(name)) {
+            return name;
         }
-        return modelFilename;
+        return super.toModelFilename(name);
     }
 
     public boolean checkRequiredBodyPropsNotNull() {
@@ -266,19 +241,19 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
     }
 
     @Override
-    public String toAnyOfName(List<String> names, ComposedSchema composedSchema) {
+    public String toAnyOfName(List<String> names, Schema composedSchema) {
         List<String> types = getTypesFromSchemas(composedSchema.getAnyOf());
         return String.join(" | ", types);
     }
 
     @Override
-    public String toOneOfName(List<String> names, ComposedSchema composedSchema) {
+    public String toOneOfName(List<String> names, Schema composedSchema) {
         List<String> types = getTypesFromSchemas(composedSchema.getOneOf());
         return String.join(" | ", types);
     }
 
     @Override
-    public String toAllOfName(List<String> names, ComposedSchema composedSchema) {
+    public String toAllOfName(List<String> names, Schema composedSchema) {
         List<String> types = getTypesFromSchemas(composedSchema.getAllOf());
         return String.join(" & ", types);
     }
@@ -485,10 +460,11 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     @Override
     public String toModelImport(String name) {
+        String modelImportName = toModelFilename(name);
         if ("".equals(modelPackage())) {
-            return name;
+            return modelImportName;
         } else {
-            return modelPackage() + "/" + name;
+            return modelPackage() + "/" + modelImportName;
         }
     }
 
@@ -513,7 +489,7 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
     @Override
     public String getTypeDeclaration(Schema p) {
         if (ModelUtils.isArraySchema(p)) {
-            Schema<?> items = getSchemaItems((ArraySchema) p);
+            Schema<?> items = ModelUtils.getSchemaItems(p);
             return getTypeDeclaration(unaliasSchema(items)) + "[]";
         } else if (ModelUtils.isMapSchema(p)) {
             return "~Object+";
@@ -544,8 +520,7 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
     protected String getParameterDataType(Parameter parameter, Schema p) {
         // handle enums of various data types
         if (ModelUtils.isArraySchema(p)) {
-            ArraySchema mp1 = (ArraySchema) p;
-            Schema<?> inner = mp1.getItems();
+            Schema<?> inner = ModelUtils.getSchemaItems(p);
             return getParameterDataType(parameter, inner) + "[]";
         } else if (ModelUtils.isMapSchema(p)) {
             return "~Object+";
@@ -564,7 +539,11 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
                 return numericEnumValuesToEnumTypeUnion(new ArrayList<Number>(p.getEnum()));
             }
         }
-        return this.getTypeDeclaration(p);
+        String result = this.getTypeDeclaration(p);
+        if (result != null) {
+            result = toModelFilename(result);
+        }
+        return result;
     }
 
     @Override
@@ -578,7 +557,11 @@ public class N4jsClientCodegen extends DefaultCodegen implements CodegenConfig {
                 }
             }
         }
-        return super.getSingleSchemaType(unaliasSchema);
+        String result = super.getSingleSchemaType(unaliasSchema);
+        if (result != null) {
+            result = toModelFilename(result);
+        }
+        return result;
     }
 
     /**

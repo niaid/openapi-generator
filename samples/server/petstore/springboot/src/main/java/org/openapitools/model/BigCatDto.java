@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.openapitools.model.CatDto;
+import org.springframework.lang.Nullable;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
@@ -27,7 +28,7 @@ import javax.annotation.Generated;
 
 
 @JsonTypeName("BigCat")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 public class BigCatDto extends CatDto {
 
   /**
@@ -42,7 +43,7 @@ public class BigCatDto extends CatDto {
     
     JAGUARS("jaguars");
 
-    private String value;
+    private final String value;
 
     KindEnum(String value) {
       this.value = value;
@@ -69,7 +70,7 @@ public class BigCatDto extends CatDto {
     }
   }
 
-  private KindEnum kind;
+  private @Nullable KindEnum kind;
 
   public BigCatDto() {
     super();
@@ -82,7 +83,7 @@ public class BigCatDto extends CatDto {
     super(className);
   }
 
-  public BigCatDto kind(KindEnum kind) {
+  public BigCatDto kind(@Nullable KindEnum kind) {
     this.kind = kind;
     return this;
   }
@@ -90,31 +91,31 @@ public class BigCatDto extends CatDto {
   /**
    * Get kind
    * @return kind
-  */
+   */
   
   @ApiModelProperty(value = "")
   @JsonProperty("kind")
-  public KindEnum getKind() {
+  public @Nullable KindEnum getKind() {
     return kind;
   }
 
-  public void setKind(KindEnum kind) {
+  public void setKind(@Nullable KindEnum kind) {
     this.kind = kind;
   }
 
 
   public BigCatDto declawed(Boolean declawed) {
-    super.setDeclawed(declawed);
+    super.declawed(declawed);
     return this;
   }
 
   public BigCatDto className(String className) {
-    super.setClassName(className);
+    super.className(className);
     return this;
   }
 
   public BigCatDto color(String color) {
-    super.setColor(color);
+    super.color(color);
     return this;
   }
   @Override

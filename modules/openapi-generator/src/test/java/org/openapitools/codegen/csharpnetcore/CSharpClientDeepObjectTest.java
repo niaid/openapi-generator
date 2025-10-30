@@ -19,6 +19,7 @@ package org.openapitools.codegen.csharpnetcore;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.ClientOptInput;
 import org.openapitools.codegen.CodegenConstants;
 import org.openapitools.codegen.DefaultGenerator;
@@ -27,9 +28,11 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.openapitools.codegen.TestUtils.assertFileContains;
 
 public class CSharpClientDeepObjectTest {
@@ -44,6 +47,7 @@ public class CSharpClientDeepObjectTest {
                 .readLocation("src/test/resources/3_0/deepobject.yaml", null, new ParseOptions()).getOpenAPI();
 
         CSharpClientCodegen codegen = new CSharpClientCodegen();
+        codegen.setLibrary("restsharp");
         codegen.setOutputDir(output.getAbsolutePath());
 
         ClientOptInput input = new ClientOptInput();
@@ -62,5 +66,8 @@ public class CSharpClientDeepObjectTest {
                 "options[id]", "options[name]", "options[category]", "options[tags]",
                 "options[status]", "options[photoUrls]",
                 "inputOptions[a]", "inputOptions[b]", "inputOptions[c]");
+        String content = new String(Files.readAllBytes(Paths.get(outputPath + "/src/Org.OpenAPITools/Api/DefaultApi.cs")), StandardCharsets.UTF_8);
+        int counter = StringUtils.countMatches(content, "inputOptions[a]");
+        assertEquals(2, counter);
     }
 }

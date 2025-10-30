@@ -62,13 +62,13 @@ In OpenAPI Generator 5.0 and later, you can use the CLI command `author template
 openapi-generator author template -g java --library webclient
 ```
 
-For OpenAPI Generator versions prior to 5.0, you will want to find the [resources directory](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator/src/main/resources) for the generator you want to extend. This is generally easy to find as directories commonly follow the convention of `resources/<generator name>`. In cases where you're unsure, you will need to find the `embeddedTemplateDir` assignment in your desired generator. This is almost always assigned in the constructor of the generator class. The C# .Net Core generator assigns this as:
+For OpenAPI Generator versions prior to 5.0, you will want to find the [resources directory](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator/src/main/resources) for the generator you want to extend. This is generally easy to find as directories commonly follow the convention of `resources/<generator name>`. In cases where you're unsure, you will need to find the `embeddedTemplateDir` assignment in your desired generator. This is almost always assigned in the constructor of the generator class. The C# generator assigns this as:
 
 ```
-embeddedTemplateDir = templateDir = "csharp-netcore";
+embeddedTemplateDir = templateDir = "csharp";
 ```
 
-These templates are in our source repository at [modules/openapi-generator/src/main/resources/csharp-netcore](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator/src/main/resources/csharp-netcore). Be sure to select the tag or branch for the version of OpenAPI Generator you're using before grabbing the templates.
+These templates are in our source repository at [modules/openapi-generator/src/main/resources/csharp](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator/src/main/resources/csharp). Be sure to select the tag or branch for the version of OpenAPI Generator you're using before grabbing the templates.
 
 **NOTE** If you have specific logic you'd like to modify such as modifying the generated README, you _only_ need to pull and modify this individual template. OpenAPI Generator will lookup templates in this order:
 
@@ -820,14 +820,21 @@ Many generators (*those extending DefaultCodegen*) come with a small set of lamb
 
 - `lowercase` - Converts all of the characters in this fragment to lower case using the rules of the `ROOT` locale.
 - `uppercase` - Converts all of the characters in this fragment to upper case using the rules of the `ROOT` locale.
+- `snakecase` - Converts text in a fragment to snake case. For example `once upon a time` to `once_upon_a_time`.
 - `titlecase` - Converts text in a fragment to title case. For example `once upon a time` to `Once Upon A Time`.
+- `kebabcase` - Converts text in a fragment to snake case. For example `Once Upon A Time` to `once-upon-a-time`.
+- `pascalcase` - Converts text in a fragment to snake case. For example `once upon a time` to `OnceUponATime`.
 - `camelcase` - Converts text in a fragment to camelCase. For example `Input-text` to `inputText`.
+- `uncamelize` - Converts text in a fragment from camelCase or PascalCase to a string of words separated by whitespaces. For example `inputText` to `Input Text`.
+- `forwardslash` - Replaces all occurrences of `\/`, `\` and `//` in a fragment by `/`.
+- `backslash` - Replaces all occurrences `/` in a fragment by `\`.
+- `doublequote` - Prepends `"` to the beginning and appends `"` to the end of a fragment.
 - `indented` - Prepends 4 spaces indention from second line of a fragment on. First line will be indented by Mustache.
 - `indented_8` - Prepends 8 spaces indention from second line of a fragment on. First line will be indented by Mustache.
 - `indented_12` - Prepends 12 spaces indention from second line of a fragment on. First line will be indented by Mustache.
 - `indented_16` -Prepends 16 spaces indention from second line of a fragment on. First line will be indented by Mustache.
 
-Lambda is invoked by `lambda.[lambda name]` expression. For example: `{{#lambda.lowercase}}FRAGMENT TO LOWERCASE{{/lambda.lowercase}}` to lower case text between `lambda.lowercase`.
+Some generators provide additional lambdas. Lambda is invoked by `lambda.[lambda name]` expression. For example: `{{#lambda.lowercase}}FRAGMENT TO LOWERCASE{{/lambda.lowercase}}` to lower case text between `lambda.lowercase`.
 
 ## Extensions
 

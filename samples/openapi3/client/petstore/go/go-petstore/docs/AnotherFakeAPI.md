@@ -1,6 +1,6 @@
 # \AnotherFakeAPI
 
-All URIs are relative to *http://petstore.swagger.io:80/v2*
+All URIs are relative to *http://localhost/v2*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
@@ -22,24 +22,24 @@ To test special tags
 package main
 
 import (
-    "context"
-    "fmt"
-    "os"
-    openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
 )
 
 func main() {
-    client := *openapiclient.NewClient() // Client | client model
+	client := *openapiclient.NewClient() // Client | client model
 
-    configuration := openapiclient.NewConfiguration()
-    apiClient := openapiclient.NewAPIClient(configuration)
-    resp, r, err := apiClient.AnotherFakeAPI.Call123TestSpecialTags(context.Background()).Client(client).Execute()
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Error when calling `AnotherFakeAPI.Call123TestSpecialTags``: %v\n", err)
-        fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
-    }
-    // response from `Call123TestSpecialTags`: Client
-    fmt.Fprintf(os.Stdout, "Response from `AnotherFakeAPI.Call123TestSpecialTags`: %v\n", resp)
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.AnotherFakeAPI.Call123TestSpecialTags(context.Background()).Client(client).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `AnotherFakeAPI.Call123TestSpecialTags``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `Call123TestSpecialTags`: Client
+	fmt.Fprintf(os.Stdout, "Response from `AnotherFakeAPI.Call123TestSpecialTags`: %v\n", resp)
 }
 ```
 

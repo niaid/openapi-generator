@@ -15,16 +15,23 @@ import 'package:openapi/src/date_serializer.dart';
 import 'package:openapi/src/model/date.dart';
 
 import 'package:openapi/src/model/addressable.dart';
+import 'package:openapi/src/model/animal.dart';
+import 'package:openapi/src/model/apple.dart';
+import 'package:openapi/src/model/banana.dart';
 import 'package:openapi/src/model/bar.dart';
 import 'package:openapi/src/model/bar_create.dart';
 import 'package:openapi/src/model/bar_ref.dart';
 import 'package:openapi/src/model/bar_ref_or_value.dart';
+import 'package:openapi/src/model/cat.dart';
+import 'package:openapi/src/model/dog.dart';
 import 'package:openapi/src/model/entity.dart';
 import 'package:openapi/src/model/entity_ref.dart';
 import 'package:openapi/src/model/extensible.dart';
 import 'package:openapi/src/model/foo.dart';
 import 'package:openapi/src/model/foo_ref.dart';
 import 'package:openapi/src/model/foo_ref_or_value.dart';
+import 'package:openapi/src/model/fruit.dart';
+import 'package:openapi/src/model/fruit_type.dart';
 import 'package:openapi/src/model/pasta.dart';
 import 'package:openapi/src/model/pizza.dart';
 import 'package:openapi/src/model/pizza_speziale.dart';
@@ -33,16 +40,23 @@ part 'serializers.g.dart';
 
 @SerializersFor([
   Addressable,$Addressable,
+  Animal,
+  Apple,
+  Banana,
   Bar,
   BarCreate,
   BarRef,
   BarRefOrValue,
+  Cat,
+  Dog,
   Entity,$Entity,
   EntityRef,$EntityRef,
   Extensible,$Extensible,
   Foo,
   FooRef,
   FooRefOrValue,
+  Fruit,
+  FruitType,
   Pasta,
   Pizza,$Pizza,
   PizzaSpeziale,
@@ -60,8 +74,8 @@ Serializers serializers = (_$serializers.toBuilder()
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer()))
-    .build();
+      ..add(Iso8601DateTimeSerializer())
+    ).build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

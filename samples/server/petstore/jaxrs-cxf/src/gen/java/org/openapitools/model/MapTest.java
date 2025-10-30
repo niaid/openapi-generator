@@ -15,7 +15,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MapTest  {
   
   @ApiModelProperty(value = "")
+
   @Valid
+
   private Map<String, Map<String, String>> mapMapOfString = new HashMap<>();
 
 public enum InnerEnum {
@@ -51,12 +53,15 @@ UPPER(String.valueOf("UPPER")), LOWER(String.valueOf("lower"));
 }
 
   @ApiModelProperty(value = "")
+
   private Map<String, InnerEnum> mapOfEnumString = new HashMap<>();
 
   @ApiModelProperty(value = "")
+
   private Map<String, Boolean> directMap = new HashMap<>();
 
   @ApiModelProperty(value = "")
+
   private Map<String, Boolean> indirectMap = new HashMap<>();
  /**
    * Get mapMapOfString
@@ -159,10 +164,10 @@ UPPER(String.valueOf("UPPER")), LOWER(String.valueOf("lower"));
       return false;
     }
     MapTest mapTest = (MapTest) o;
-    return Objects.equals(mapMapOfString, mapTest.mapMapOfString) &&
-        Objects.equals(mapOfEnumString, mapTest.mapOfEnumString) &&
-        Objects.equals(directMap, mapTest.directMap) &&
-        Objects.equals(indirectMap, mapTest.indirectMap);
+    return Objects.equals(this.mapMapOfString, mapTest.mapMapOfString) &&
+        Objects.equals(this.mapOfEnumString, mapTest.mapOfEnumString) &&
+        Objects.equals(this.directMap, mapTest.directMap) &&
+        Objects.equals(this.indirectMap, mapTest.indirectMap);
   }
 
   @Override

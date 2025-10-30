@@ -12,9 +12,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class HasOnlyReadOnly  {
   
   @ApiModelProperty(value = "")
+
   private String bar;
 
   @ApiModelProperty(value = "")
+
   private String foo;
  /**
    * Get bar
@@ -45,8 +47,8 @@ public class HasOnlyReadOnly  {
       return false;
     }
     HasOnlyReadOnly hasOnlyReadOnly = (HasOnlyReadOnly) o;
-    return Objects.equals(bar, hasOnlyReadOnly.bar) &&
-        Objects.equals(foo, hasOnlyReadOnly.foo);
+    return Objects.equals(this.bar, hasOnlyReadOnly.bar) &&
+        Objects.equals(this.foo, hasOnlyReadOnly.foo);
   }
 
   @Override

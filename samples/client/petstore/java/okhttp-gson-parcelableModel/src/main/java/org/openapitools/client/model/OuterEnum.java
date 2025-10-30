@@ -14,13 +14,15 @@
 package org.openapitools.client.model;
 
 import java.util.Objects;
-import java.util.Arrays;
+import java.util.Locale;
 import com.google.gson.annotations.SerializedName;
 import android.os.Parcelable;
 import android.os.Parcel;
 
 import java.io.IOException;
+import java.util.Locale;
 import com.google.gson.TypeAdapter;
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -72,6 +74,11 @@ public enum OuterEnum {
       String value = jsonReader.nextString();
       return OuterEnum.fromValue(value);
     }
+  }
+
+  public static void validateJsonElement(JsonElement jsonElement) throws IOException {
+    String value = jsonElement.getAsString();
+    OuterEnum.fromValue(value);
   }
 }
 

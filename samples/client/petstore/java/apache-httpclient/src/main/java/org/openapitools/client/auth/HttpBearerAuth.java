@@ -15,16 +15,17 @@ package org.openapitools.client.auth;
 
 import org.openapitools.client.Pair;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
 public class HttpBearerAuth implements Authentication {
   private final String scheme;
-  private String bearerToken;
+  private Supplier<String> tokenSupplier;
 
   public HttpBearerAuth(String scheme) {
-    this.scheme = scheme;
+    this.scheme = upperCaseBearer(scheme);
   }
 
   /**
@@ -33,7 +34,7 @@ public class HttpBearerAuth implements Authentication {
    * @return The bearer token
    */
   public String getBearerToken() {
-    return bearerToken;
+    return tokenSupplier.get();
   }
 
   /**
@@ -42,19 +43,28 @@ public class HttpBearerAuth implements Authentication {
    * @param bearerToken The bearer token to send in the Authorization header
    */
   public void setBearerToken(String bearerToken) {
-    this.bearerToken = bearerToken;
+    this.tokenSupplier = () -> bearerToken;
+  }
+
+  /**
+   * Sets the supplier of tokens, which together with the scheme, will be sent as the value of the Authorization header.
+   *
+   * @param tokenSupplier The supplier of bearer tokens to send in the Authorization header
+   */
+  public void setBearerToken(Supplier<String> tokenSupplier) {
+    this.tokenSupplier = tokenSupplier;
   }
 
   @Override
   public void applyToParams(List<Pair> queryParams, Map<String, String> headerParams, Map<String, String> cookieParams) {
-    if(bearerToken == null) {
+    String bearerToken = tokenSupplier != null ? tokenSupplier.get() : null;
+    if (bearerToken == null) {
       return;
     }
-
-    headerParams.put("Authorization", (scheme != null ? upperCaseBearer(scheme) + " " : "") + bearerToken);
+    headerParams.put("Authorization", (scheme != null ? scheme + " " : "") + bearerToken);
   }
 
   private static String upperCaseBearer(String scheme) {
-    return ("bearer".equalsIgnoreCase(scheme)) ? "Bearer" : scheme;
+    return "bearer".equalsIgnoreCase(scheme) ? "Bearer" : scheme;
   }
 }

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Client  {
   
   @ApiModelProperty(value = "")
+
   private String client;
  /**
    * Get client
@@ -39,7 +40,7 @@ public class Client  {
       return false;
     }
     Client client = (Client) o;
-    return Objects.equals(client, client.client);
+    return Objects.equals(this.client, client.client);
   }
 
   @Override

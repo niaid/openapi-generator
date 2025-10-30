@@ -1,25 +1,27 @@
 package org.openapitools.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import io.swagger.annotations.ApiModel;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
-  * Model for testing model name starting with number
- **/
+ * Model for testing model name starting with number
+ */
 @ApiModel(description="Model for testing model name starting with number")
 
 public class Model200Response  {
   
   @ApiModelProperty(value = "")
+
   private Integer name;
 
   @ApiModelProperty(value = "")
+
   private String propertyClass;
  /**
    * Get name
@@ -66,8 +68,8 @@ public class Model200Response  {
       return false;
     }
     Model200Response _200response = (Model200Response) o;
-    return Objects.equals(name, _200response.name) &&
-        Objects.equals(propertyClass, _200response.propertyClass);
+    return Objects.equals(this.name, _200response.name) &&
+        Objects.equals(this.propertyClass, _200response.propertyClass);
   }
 
   @Override

@@ -1,5 +1,6 @@
 =begin
 {{> api_info}}
+
 =end
 
 require 'spec_helper'
@@ -13,13 +14,16 @@ require 'date'
 {{#model}}
 describe {{moduleName}}::{{classname}} do
 {{^oneOf}}
-  let(:instance) { {{moduleName}}::{{classname}}.new }
+{{^anyOf}}
+  #let(:instance) { {{moduleName}}::{{classname}}.new }
 
   describe 'test an instance of {{classname}}' do
     it 'should create an instance of {{classname}}' do
-      expect(instance).to be_instance_of({{moduleName}}::{{classname}})
+      # uncomment below to test the instance creation
+      #expect(instance).to be_instance_of({{moduleName}}::{{classname}})
     end
   end
+
 {{#vars}}
   describe 'test attribute "{{{name}}}"' do
     it 'should work' do
@@ -37,6 +41,7 @@ describe {{moduleName}}::{{classname}} do
   end
 
 {{/vars}}
+{{/anyOf}}
 {{/oneOf}}
 {{#oneOf}}
 {{#-first}}
@@ -68,6 +73,7 @@ describe {{moduleName}}::{{classname}} do
   {{/discriminator}}
   describe '.build' do
     it 'returns the correct model' do
+      # assertion here. ref: https://rspec.info/features/3-12/rspec-expectations/built-in-matchers/
     end
   end
 {{/-first}}

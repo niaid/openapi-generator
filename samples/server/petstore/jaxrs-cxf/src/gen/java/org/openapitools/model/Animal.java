@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Animal  {
   
   @ApiModelProperty(required = true, value = "")
+
   private String className;
 
   @ApiModelProperty(value = "")
+
   private String color = "red";
  /**
    * Get className
@@ -70,8 +72,8 @@ public class Animal  {
       return false;
     }
     Animal animal = (Animal) o;
-    return Objects.equals(className, animal.className) &&
-        Objects.equals(color, animal.color);
+    return Objects.equals(this.className, animal.className) &&
+        Objects.equals(this.color, animal.color);
   }
 
   @Override

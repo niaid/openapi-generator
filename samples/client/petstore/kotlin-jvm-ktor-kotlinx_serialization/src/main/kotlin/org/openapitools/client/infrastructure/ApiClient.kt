@@ -13,6 +13,7 @@ import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.contentType
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.Parameters
@@ -48,8 +49,8 @@ open class ApiClient(
     }
 
     companion object {
-          const val BASE_URL = "http://petstore.swagger.io/v2"
-          protected val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
+          const val BASE_URL: String = "http://petstore.swagger.io/v2"
+          protected val UNSAFE_HEADERS: List<String> = listOf(HttpHeaders.ContentType)
     }
 
     /**
@@ -147,6 +148,9 @@ open class ApiClient(
             this.method = requestConfig.method.httpMethod
             headers.filter { header -> !UNSAFE_HEADERS.contains(header.key) }.forEach { header -> this.header(header.key, header.value) }
             if (requestConfig.method in listOf(RequestMethod.PUT, RequestMethod.POST, RequestMethod.PATCH)) {
+                val contentType = (requestConfig.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+                    ?: ContentType.Application.Json)
+                this.contentType(contentType)
                 setBody(body)
             }
         }

@@ -1,14 +1,11 @@
 package org.openapitools.api;
 
 import org.openapitools.model.Client;
+import java.util.UUID;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.MediaType;
 import org.apache.cxf.jaxrs.ext.multipart.*;
 
 import io.swagger.annotations.Api;
@@ -42,5 +39,5 @@ public interface AnotherFakeApi  {
     @ApiOperation(value = "To test special tags", tags={ "$another-fake?" })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "successful operation", response = Client.class) })
-    public Client call123testSpecialTags(@Valid @NotNull Client body);
+    public Client call123testSpecialTags(@HeaderParam("uuid_test")  @NotNull UUID uuidTest, @Valid @NotNull Client body);
 }

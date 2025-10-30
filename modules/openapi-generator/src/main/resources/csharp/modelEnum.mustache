@@ -44,21 +44,20 @@
     {{#useGenericHost}}
 
     /// <summary>
-    /// A Json converter for type <see cref="{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}"/>
+    /// Converts <see cref="{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}"/> to and from the JSON value
     /// </summary>
-    /// <exception cref="NotImplementedException"></exception>
-    public class {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}Converter : JsonConverter<{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}>
+    {{>visibility}} static class {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}ValueConverter
     {
         /// <summary>
         /// Parses a given value to <see cref="{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}"/>
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} FromString(string value)
+        {{>visibility}} static {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} FromString(string value)
         {
             {{#allowableValues}}
             {{#enumVars}}
-            if (value == {{^isString}}({{{value}}}).ToString(){{/isString}}{{#isString}}"{{{value}}}"{{/isString}})
+            if (value.Equals({{^isString}}({{{value}}}).ToString(){{/isString}}{{#isString}}"{{{value}}}"{{/isString}}))
                 return {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}.{{name}};
 
             {{/enumVars}}
@@ -71,11 +70,11 @@
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}? FromStringOrDefault(string value)
+        {{>visibility}} static {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}? FromStringOrDefault(string value)
         {
             {{#allowableValues}}
             {{#enumVars}}
-            if (value == {{^isString}}({{{value}}}).ToString(){{/isString}}{{#isString}}"{{{value}}}"{{/isString}})
+            if (value.Equals({{^isString}}({{{value}}}).ToString(){{/isString}}{{#isString}}"{{{value}}}"{{/isString}}))
                 return {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}.{{name}};
 
             {{/enumVars}}
@@ -89,10 +88,10 @@
         /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static {{>EnumValueDataType}} ToJsonValue({{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} value)
+        {{>visibility}} static {{>EnumValueDataType}} ToJsonValue({{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} value)
         {
             {{^isString}}
-            return (int) value;
+            return ({{>EnumValueDataType}}) value;
             {{/isString}}
             {{#isString}}
             {{#allowableValues}}
@@ -105,7 +104,14 @@
             throw new NotImplementedException($"Value could not be handled: '{value}'");
             {{/isString}}
         }
+    }
 
+    /// <summary>
+    /// A Json converter for type <see cref="{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}"/>
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
+    {{>visibility}} class {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}JsonConverter : JsonConverter<{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}>
+    {
         /// <summary>
         /// Returns a {{datatypeWithEnum}} from the Json object
         /// </summary>
@@ -119,7 +125,7 @@
 
             {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}? result = rawValue == null
                 ? null
-                : {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}Converter.FromStringOrDefault(rawValue);
+                : {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}ValueConverter.FromStringOrDefault(rawValue);
 
             if (result != null)
                 return result.Value;
@@ -131,18 +137,18 @@
         /// Writes the {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} to the json writer
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="{{#lambda.camelcase_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_param}}"></param>
+        /// <param name="{{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}"></param>
         /// <param name="options"></param>
-        public override void Write(Utf8JsonWriter writer, {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} {{#lambda.camelcase_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_param}}, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} {{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}, JsonSerializerOptions options)
         {
-            writer.WriteStringValue({{#lambda.camelcase_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_param}}.ToString());
+            writer.WriteStringValue({{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}ValueConverter.ToJsonValue({{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}).ToString());
         }
     }
 
     /// <summary>
     /// A Json converter for type <see cref="{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}"/>
     /// </summary>
-    public class {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}NullableConverter : JsonConverter<{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}?>
+    {{>visibility}} class {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}NullableJsonConverter : JsonConverter<{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}?>
     {
         /// <summary>
         /// Returns a {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} from the Json object
@@ -157,7 +163,7 @@
 
             {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}? result = rawValue == null
                 ? null
-                : {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}Converter.FromStringOrDefault(rawValue);
+                : {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}ValueConverter.FromStringOrDefault(rawValue);
 
             if (result != null)
                 return result.Value;
@@ -166,14 +172,14 @@
         }
 
         /// <summary>
-        /// Writes the DateTime to the json writer
+        /// Writes the {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}} to the json writer
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="{{#lambda.camelcase_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_param}}"></param>
+        /// <param name="{{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}"></param>
         /// <param name="options"></param>
-        public override void Write(Utf8JsonWriter writer, {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}? {{#lambda.camelcase_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_param}}, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}? {{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}, JsonSerializerOptions options)
         {
-            writer.WriteStringValue({{#lambda.camelcase_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_param}}?.ToString() ?? "null");
+            writer.WriteStringValue({{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}.HasValue ? {{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}ValueConverter.ToJsonValue({{#lambda.camelcase_sanitize_param}}{{datatypeWithEnum}}{{^datatypeWithEnum}}{{classname}}{{/datatypeWithEnum}}{{/lambda.camelcase_sanitize_param}}.Value).ToString() : "null");
         }
     }
     {{/useGenericHost}}

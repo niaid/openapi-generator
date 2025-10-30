@@ -1,1 +1,2 @@
-            Logger.LogError(exception, "An error occurred while sending the request to the server.");
+            if (!suppressDefaultLogLocalVar)
+                Logger.LogError(exceptionLocalVar, "An error occurred while sending the request to the server.");
