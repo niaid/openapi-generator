@@ -12,10 +12,10 @@
   },
   "devDependencies": {},
   "dependencies": {
-    "@docusaurus/core": "^2.3.1",
-    "@docusaurus/plugin-google-analytics": "^2.3.1",
-    "@docusaurus/preset-classic": "^2.3.1",
-    "@docusaurus/utils": "^2.3.1",
+    "@docusaurus/core": "^2.4.3",
+    "@docusaurus/plugin-google-analytics": "^2.4.3",
+    "@docusaurus/preset-classic": "^2.4.3",
+    "@docusaurus/utils": "^2.4.3",
     "classnames": "^2.2.6",
     "js-yaml": "^3.12.0",
     "lodash.merge": "^4.6.2",
@@ -23,6 +23,21 @@
     "prism-react-renderer": "^1.0.2",
     "react": "^16.10.2",
     "react-dom": "^16.10.2"
+  },
+  "resolutions": {
+    "webpack": "^5.94.0",
+    "semver": "^7.5.4",
+    "webpack-dev-server": "^5.2.1",
+    "ws": "^8.18.0",
+    "@babel/traverse": "^7.23.2",
+    "follow-redirects": "^1.15.6",
+    "micromatch": "^4.0.8",
+    "braces": "^3.0.3",
+    "postcss": "^8.4.31",
+    "nanoid": "^3.3.7",
+    "serialize-javascript": "^6.0.2",
+    "got": "^11.8.5",
+    "prismjs": "^1.29.0"
   },
   "browserslist": {
     "production": [
