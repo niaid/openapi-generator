@@ -14,10 +14,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        directories:
-          - "samples/**"
+    exclude-paths:
+      - "samples/**"
   - package-ecosystem: "npm"
     directory: "/website"
     schedule:
