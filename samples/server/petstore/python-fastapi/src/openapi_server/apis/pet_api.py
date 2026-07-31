@@ -28,6 +28,7 @@ from typing import Any, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 from openapi_server.models.api_response import ApiResponse
 from openapi_server.models.pet import Pet
+from fastapi import File, UploadFile
 from openapi_server.security_api import get_token_petstore_auth, get_token_api_key
 
 router = APIRouter()
@@ -35,6 +36,30 @@ router = APIRouter()
 ns_pkg = openapi_server.impl
 for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
     importlib.import_module(name)
+
+
+@router.put(
+    "/pet",
+    responses={
+        200: {"model": Pet, "description": "successful operation"},
+        400: {"description": "Invalid ID supplied"},
+        404: {"description": "Pet not found"},
+        405: {"description": "Validation exception"},
+    },
+    tags=["pet"],
+    summary="Update an existing pet",
+    response_model_by_alias=True,
+)
+async def update_pet(
+    pet: Annotated[Pet, Field(description="Pet object that needs to be added to the store")] = Body(None, description="Pet object that needs to be added to the store"),
+    token_petstore_auth: TokenModel = Security(
+        get_token_petstore_auth, scopes=["write:pets", "read:pets"]
+    ),
+) -> Pet:
+    """"""
+    if not BasePetApi.subclasses:
+        raise HTTPException(status_code=500, detail="Not implemented")
+    return await BasePetApi.subclasses[0]().update_pet(pet)
 
 
 @router.post(
@@ -57,28 +82,6 @@ async def add_pet(
     if not BasePetApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
     return await BasePetApi.subclasses[0]().add_pet(pet)
-
-
-@router.delete(
-    "/pet/{petId}",
-    responses={
-        400: {"description": "Invalid pet value"},
-    },
-    tags=["pet"],
-    summary="Deletes a pet",
-    response_model_by_alias=True,
-)
-async def delete_pet(
-    petId: Annotated[StrictInt, Field(description="Pet id to delete")] = Path(..., description="Pet id to delete"),
-    api_key: Optional[StrictStr] = Header(None, description=""),
-    token_petstore_auth: TokenModel = Security(
-        get_token_petstore_auth, scopes=["write:pets", "read:pets"]
-    ),
-) -> None:
-    """"""
-    if not BasePetApi.subclasses:
-        raise HTTPException(status_code=500, detail="Not implemented")
-    return await BasePetApi.subclasses[0]().delete_pet(petId, api_key)
 
 
 @router.get(
@@ -148,30 +151,6 @@ async def get_pet_by_id(
     return await BasePetApi.subclasses[0]().get_pet_by_id(petId)
 
 
-@router.put(
-    "/pet",
-    responses={
-        200: {"model": Pet, "description": "successful operation"},
-        400: {"description": "Invalid ID supplied"},
-        404: {"description": "Pet not found"},
-        405: {"description": "Validation exception"},
-    },
-    tags=["pet"],
-    summary="Update an existing pet",
-    response_model_by_alias=True,
-)
-async def update_pet(
-    pet: Annotated[Pet, Field(description="Pet object that needs to be added to the store")] = Body(None, description="Pet object that needs to be added to the store"),
-    token_petstore_auth: TokenModel = Security(
-        get_token_petstore_auth, scopes=["write:pets", "read:pets"]
-    ),
-) -> Pet:
-    """"""
-    if not BasePetApi.subclasses:
-        raise HTTPException(status_code=500, detail="Not implemented")
-    return await BasePetApi.subclasses[0]().update_pet(pet)
-
-
 @router.post(
     "/pet/{petId}",
     responses={
@@ -195,6 +174,28 @@ async def update_pet_with_form(
     return await BasePetApi.subclasses[0]().update_pet_with_form(petId, name, status)
 
 
+@router.delete(
+    "/pet/{petId}",
+    responses={
+        400: {"description": "Invalid pet value"},
+    },
+    tags=["pet"],
+    summary="Deletes a pet",
+    response_model_by_alias=True,
+)
+async def delete_pet(
+    petId: Annotated[StrictInt, Field(description="Pet id to delete")] = Path(..., description="Pet id to delete"),
+    api_key: Optional[StrictStr] = Header(None, description=""),
+    token_petstore_auth: TokenModel = Security(
+        get_token_petstore_auth, scopes=["write:pets", "read:pets"]
+    ),
+) -> None:
+    """"""
+    if not BasePetApi.subclasses:
+        raise HTTPException(status_code=500, detail="Not implemented")
+    return await BasePetApi.subclasses[0]().delete_pet(petId, api_key)
+
+
 @router.post(
     "/pet/{petId}/uploadImage",
     responses={
@@ -207,7 +208,7 @@ async def update_pet_with_form(
 async def upload_file(
     petId: Annotated[StrictInt, Field(description="ID of pet to update")] = Path(..., description="ID of pet to update"),
     additional_metadata: Annotated[Optional[StrictStr], Field(description="Additional data to pass to server")] = Form(None, description="Additional data to pass to server"),
-    file: Annotated[Optional[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]]], Field(description="file to upload")] = Form(None, description="file to upload"),
+    file: Optional[UploadFile] = File(None, description="file to upload"),
     token_petstore_auth: TokenModel = Security(
         get_token_petstore_auth, scopes=["write:pets", "read:pets"]
     ),

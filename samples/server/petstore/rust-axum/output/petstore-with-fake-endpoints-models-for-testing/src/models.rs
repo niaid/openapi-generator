@@ -8,6 +8,23 @@ use crate::header;
 use crate::{models, types::*};
 
 #[allow(dead_code)]
+pub type SSE = std::pin::Pin<
+    std::boxed::Box<
+        dyn futures_util::Stream<
+                Item = std::result::Result<axum::response::sse::Event, std::convert::Infallible>,
+            > + std::marker::Send
+            + std::marker::Sync,
+    >,
+>;
+
+#[allow(dead_code)]
+fn from_validation_error(e: validator::ValidationError) -> validator::ValidationErrors {
+    let mut errs = validator::ValidationErrors::new();
+    errs.add("na", e);
+    errs
+}
+
+#[allow(dead_code)]
 pub fn check_xss_string(v: &str) -> std::result::Result<(), validator::ValidationError> {
     if ammonia::is_html(v) {
         std::result::Result::Err(validator::ValidationError::new("xss detected"))
@@ -169,8 +186,8 @@ pub struct DeleteOrderPathParams {
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
 pub struct GetOrderByIdPathParams {
     /// ID of pet that needs to be fetched
-    #[validate(range(min = 1i64, max = 5i64))]
-    pub order_id: i64,
+    #[validate(range(min = 1u64, max = 5u64))]
+    pub order_id: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
@@ -515,7 +532,7 @@ impl std::convert::TryFrom<HeaderValue> for header::IntoHeaderValue<Animal> {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct AnimalFarm(Vec<Animal>);
+pub struct AnimalFarm(pub Vec<Animal>);
 
 impl validator::Validate for AnimalFarm {
     fn validate(&self) -> std::result::Result<(), validator::ValidationErrors> {
@@ -2805,9 +2822,9 @@ pub struct FormatTest {
     pub integer: Option<u8>,
 
     #[serde(rename = "int32")]
-    #[validate(range(min = 20u8, max = 200u8))]
+    #[validate(range(min = 20u32, max = 200u32))]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub int32: Option<u8>,
+    pub int32: Option<u32>,
 
     #[serde(rename = "int64")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2860,10 +2877,10 @@ pub struct FormatTest {
 }
 
 lazy_static::lazy_static! {
-    static ref RE_FORMATTEST_STRING: regex::Regex = regex::Regex::new(r"/[a-z]/i").unwrap();
+    static ref RE_FORMATTEST_STRING: regex::Regex = regex::Regex::new("/[a-z]/i").unwrap();
 }
 lazy_static::lazy_static! {
-    static ref RE_FORMATTEST_BYTE: regex::bytes::Regex = regex::bytes::Regex::new(r"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}&#x3D;&#x3D;|[A-Za-z0-9+/]{3}&#x3D;)?$").unwrap();
+    static ref RE_FORMATTEST_BYTE: regex::bytes::Regex = regex::bytes::Regex::new("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}&#x3D;&#x3D;|[A-Za-z0-9+/]{3}&#x3D;)?$").unwrap();
 }
 fn validate_byte_formattest_byte(
     b: &ByteArray,
@@ -2961,7 +2978,7 @@ impl std::str::FromStr for FormatTest {
         #[allow(dead_code)]
         struct IntermediateRep {
             pub integer: Vec<u8>,
-            pub int32: Vec<u8>,
+            pub int32: Vec<u32>,
             pub int64: Vec<i64>,
             pub number: Vec<f64>,
             pub float: Vec<f32>,
@@ -2999,9 +3016,9 @@ impl std::str::FromStr for FormatTest {
                         .integer
                         .push(<u8 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
                     #[allow(clippy::redundant_clone)]
-                    "int32" => intermediate_rep
-                        .int32
-                        .push(<u8 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
+                    "int32" => intermediate_rep.int32.push(
+                        <u32 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?,
+                    ),
                     #[allow(clippy::redundant_clone)]
                     "int64" => intermediate_rep.int64.push(
                         <i64 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?,
@@ -4340,7 +4357,7 @@ impl std::convert::TryFrom<HeaderValue>
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct ObjectWithOnlyAdditionalProperties(std::collections::HashMap<String, String>);
+pub struct ObjectWithOnlyAdditionalProperties(pub std::collections::HashMap<String, String>);
 
 impl validator::Validate for ObjectWithOnlyAdditionalProperties {
     fn validate(&self) -> std::result::Result<(), validator::ValidationErrors> {
@@ -4606,7 +4623,7 @@ impl std::convert::TryFrom<HeaderValue> for header::IntoHeaderValue<Order> {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct OuterBoolean(bool);
+pub struct OuterBoolean(pub bool);
 
 impl validator::Validate for OuterBoolean {
     fn validate(&self) -> std::result::Result<(), validator::ValidationErrors> {
@@ -4851,7 +4868,7 @@ impl std::str::FromStr for OuterEnum {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct OuterNumber(f64);
+pub struct OuterNumber(pub f64);
 
 impl validator::Validate for OuterNumber {
     fn validate(&self) -> std::result::Result<(), validator::ValidationErrors> {
@@ -4886,7 +4903,7 @@ impl std::ops::DerefMut for OuterNumber {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct OuterString(String);
+pub struct OuterString(pub String);
 
 impl validator::Validate for OuterString {
     fn validate(&self) -> std::result::Result<(), validator::ValidationErrors> {
@@ -4902,7 +4919,7 @@ impl std::convert::From<String> for OuterString {
 
 impl std::fmt::Display for OuterString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.0)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -5577,15 +5594,15 @@ impl std::convert::TryFrom<HeaderValue> for header::IntoHeaderValue<Tag> {
 pub struct TestEndpointParametersRequest {
     /// None
     #[serde(rename = "integer")]
-    #[validate(range(min = 10u8, max = 100u8))]
+    #[validate(range(min = 10u32, max = 100u32))]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub integer: Option<u8>,
+    pub integer: Option<u32>,
 
     /// None
     #[serde(rename = "int32")]
-    #[validate(range(min = 20u8, max = 200u8))]
+    #[validate(range(min = 20u32, max = 200u32))]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub int32: Option<u8>,
+    pub int32: Option<u32>,
 
     /// None
     #[serde(rename = "int64")]
@@ -5658,10 +5675,10 @@ pub struct TestEndpointParametersRequest {
 }
 
 lazy_static::lazy_static! {
-    static ref RE_TESTENDPOINTPARAMETERSREQUEST_STRING: regex::Regex = regex::Regex::new(r"/[a-z]/i").unwrap();
+    static ref RE_TESTENDPOINTPARAMETERSREQUEST_STRING: regex::Regex = regex::Regex::new("/[a-z]/i").unwrap();
 }
 lazy_static::lazy_static! {
-    static ref RE_TESTENDPOINTPARAMETERSREQUEST_PATTERN_WITHOUT_DELIMITER: regex::Regex = regex::Regex::new(r"^[A-Z].*").unwrap();
+    static ref RE_TESTENDPOINTPARAMETERSREQUEST_PATTERN_WITHOUT_DELIMITER: regex::Regex = regex::Regex::new("^[A-Z].*").unwrap();
 }
 
 impl TestEndpointParametersRequest {
@@ -5754,8 +5771,8 @@ impl std::str::FromStr for TestEndpointParametersRequest {
         #[derive(Default)]
         #[allow(dead_code)]
         struct IntermediateRep {
-            pub integer: Vec<u8>,
-            pub int32: Vec<u8>,
+            pub integer: Vec<u32>,
+            pub int32: Vec<u32>,
             pub int64: Vec<i64>,
             pub number: Vec<f64>,
             pub float: Vec<f32>,
@@ -5790,9 +5807,9 @@ impl std::str::FromStr for TestEndpointParametersRequest {
                 #[allow(clippy::match_single_binding)]
                 match key {
                     #[allow(clippy::redundant_clone)]
-                    "integer" => intermediate_rep.integer.push(<u8 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
+                    "integer" => intermediate_rep.integer.push(<u32 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
                     #[allow(clippy::redundant_clone)]
-                    "int32" => intermediate_rep.int32.push(<u8 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
+                    "int32" => intermediate_rep.int32.push(<u32 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
                     #[allow(clippy::redundant_clone)]
                     "int64" => intermediate_rep.int64.push(<i64 as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?),
                     #[allow(clippy::redundant_clone)]

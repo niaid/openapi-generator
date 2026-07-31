@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.openapitools.codegen.CodegenConstants.*;
+import static org.openapitools.codegen.languages.KotlinClientCodegen.COMPANION_OBJECT;
+import static org.openapitools.codegen.languages.KotlinClientCodegen.GENERATE_ONEOF_ANYOF_WRAPPERS;
 
 @SuppressWarnings("static-method")
 public class KotlinClientCodegenModelTest {
@@ -430,6 +432,50 @@ public class KotlinClientCodegenModelTest {
         configAssert.assertValue(KotlinClientCodegen.FAIL_ON_UNKNOWN_PROPERTIES, codegen::isFailOnUnknownProperties, Boolean.FALSE);
     }
 
+    @Test
+    public void testBooleanAdditionalProperties() {
+        final KotlinClientCodegen codegen = new KotlinClientCodegen();
+
+        // Default to false
+        codegen.additionalProperties().put(KotlinClientCodegen.USE_COROUTINES, "false");
+        codegen.additionalProperties().put(KotlinClientCodegen.USE_RX_JAVA3, "false");
+        codegen.additionalProperties().put(KotlinClientCodegen.OMIT_GRADLE_WRAPPER, "false");
+        codegen.additionalProperties().put(KotlinClientCodegen.USE_SPRING_BOOT3, "false");
+        codegen.additionalProperties().put(KotlinClientCodegen.MAP_FILE_BINARY_TO_BYTE_ARRAY, "false");
+        codegen.additionalProperties().put(KotlinClientCodegen.GENERATE_ONEOF_ANYOF_WRAPPERS, "false");
+        codegen.additionalProperties().put(KotlinClientCodegen.FAIL_ON_UNKNOWN_PROPERTIES, "false");
+
+        codegen.processOpts();
+
+        // Should be false
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.USE_COROUTINES));
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.USE_RX_JAVA3));
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.OMIT_GRADLE_WRAPPER));
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.USE_SPRING_BOOT3));
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.MAP_FILE_BINARY_TO_BYTE_ARRAY));
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.GENERATE_ONEOF_ANYOF_WRAPPERS));
+        Assert.assertFalse((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.FAIL_ON_UNKNOWN_PROPERTIES));
+
+        // Default to true
+        codegen.additionalProperties().put(KotlinClientCodegen.USE_COROUTINES, "true"); // these are exclusive
+        codegen.additionalProperties().remove(KotlinClientCodegen.USE_RX_JAVA3); // these are exclusive
+        codegen.additionalProperties().put(KotlinClientCodegen.OMIT_GRADLE_WRAPPER, "true");
+        codegen.additionalProperties().put(KotlinClientCodegen.USE_SPRING_BOOT3, "true");
+        codegen.additionalProperties().put(KotlinClientCodegen.MAP_FILE_BINARY_TO_BYTE_ARRAY, "true");
+        codegen.additionalProperties().put(KotlinClientCodegen.GENERATE_ONEOF_ANYOF_WRAPPERS, "true");
+        codegen.additionalProperties().put(KotlinClientCodegen.FAIL_ON_UNKNOWN_PROPERTIES, "true");
+
+        codegen.processOpts();
+
+        // Should be true
+        Assert.assertTrue((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.USE_COROUTINES));
+        Assert.assertTrue((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.OMIT_GRADLE_WRAPPER));
+        Assert.assertTrue((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.USE_SPRING_BOOT3));
+        Assert.assertTrue((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.MAP_FILE_BINARY_TO_BYTE_ARRAY));
+        Assert.assertTrue((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.GENERATE_ONEOF_ANYOF_WRAPPERS));
+        Assert.assertTrue((Boolean) codegen.additionalProperties().get(KotlinClientCodegen.FAIL_ON_UNKNOWN_PROPERTIES));
+    }
+
     @DataProvider(name = "gsonClientLibraries")
     public Object[][] pathResponses() {
         return new Object[][]{
@@ -501,7 +547,7 @@ public class KotlinClientCodegenModelTest {
 //        properties.put(CodegenConstants.LIBRARY, ClientLibrary.JVM_KTOR);
         properties.put(CodegenConstants.ENUM_PROPERTY_NAMING, CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.UPPERCASE.toString());
         properties.put(SERIALIZATION_LIBRARY, KotlinClientCodegen.SERIALIZATION_LIBRARY_TYPE.gson.toString());
-        properties.put(KotlinClientCodegen.GENERATE_ONEOF_ANYOF_WRAPPERS, true);
+        properties.put(GENERATE_ONEOF_ANYOF_WRAPPERS, true);
         properties.put(API_PACKAGE, "com.toasttab.service.scim.api");
         properties.put(MODEL_PACKAGE, "com.toasttab.service.scim.models");
         properties.put(PACKAGE_NAME, "com.toasttab.service.scim");
@@ -527,6 +573,32 @@ public class KotlinClientCodegenModelTest {
         parseTreeWalker.walk(customKotlinParseListener, parseTree);
         Assert.assertEquals(syntaxErrorListener.getSyntaxErrorCount(), 0);
         Assert.assertEquals(customKotlinParseListener.getStringReferenceCount(), 0);
+    }
+
+    @Test(description = "add override on reference specialisation")
+    public void polymorphicReferenceOverrides() throws IOException {
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+//        File output = Paths.get("/Users/sylvain_maillard/workspaces/openapi-generator/modules/openapi-generator/target/test").toFile();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .setInputSpec("src/test/resources/3_1/issue_22216.yaml")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+        final ClientOptInput clientOptInput = configurator.toClientOptInput();
+        DefaultGenerator generator = new DefaultGenerator();
+        List<File> files = generator.opts(clientOptInput).generate();
+
+        Assert.assertEquals(files.size(), 36);
+
+        final Path carFile = Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/Car.kt");
+        final Path vehicleFile = Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/Vehicle.kt");
+        // file should contain override keyword for inherited properties ref
+        TestUtils.assertFileContains(carFile, "override val requiredProperty: kotlin.String,");
+        TestUtils.assertFileContains(carFile, "override val optionalProperty: kotlin.String? = null");
+        // file should not contain override keyword for own properties
+        TestUtils.assertFileNotContains(carFile, "override val color: kotlin.String? = null");
     }
 
     @Test(description = "generate polymorphic kotlinx_serialization model")
@@ -569,10 +641,131 @@ public class KotlinClientCodegenModelTest {
         TestUtils.assertFileContains(birdKt, "@SerialName(value = \"BIRD\")");
     }
 
+    @Test(description = "generate oneOf wrapper with primitive types using kotlinx_serialization")
+    public void oneOfPrimitiveKotlinxSerialization() throws IOException {
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .setLibrary("jvm-retrofit2")
+                .setAdditionalProperties(new HashMap<>() {{
+                    put(CodegenConstants.SERIALIZATION_LIBRARY, "kotlinx_serialization");
+                    put("generateOneOfAnyOfWrappers", true);
+                }})
+                .setInputSpec("src/test/resources/3_0/issue_19942.json")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+        final ClientOptInput clientOptInput = configurator.toClientOptInput();
+        DefaultGenerator generator = new DefaultGenerator();
+        generator.opts(clientOptInput).generate();
+
+        final Path oneOfModelKt = Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/ObjectWithComplexOneOfId.kt");
+        // generates sealed interface (not data class)
+        TestUtils.assertFileContains(oneOfModelKt, "sealed interface ObjectWithComplexOneOfId");
+        // has value class variants
+        TestUtils.assertFileContains(oneOfModelKt, "value class StringValue(val value: kotlin.String) : ObjectWithComplexOneOfId");
+        // has a custom KSerializer
+        TestUtils.assertFileContains(oneOfModelKt, "object ObjectWithComplexOneOfIdSerializer : KSerializer<ObjectWithComplexOneOfId>");
+        // serializer handles primitive types via value class pattern
+        TestUtils.assertFileContains(oneOfModelKt, "is ObjectWithComplexOneOfId.StringValue -> jsonEncoder.encodeString(value.value)");
+        // deserializer uses type guards
+        TestUtils.assertFileContains(oneOfModelKt, "jsonElement is JsonPrimitive && jsonElement.isString");
+        // parent model references the oneOf wrapper type
+        final Path parentModelKt = Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/ObjectWithComplexOneOf.kt");
+        TestUtils.assertFileContains(parentModelKt, "val id: ObjectWithComplexOneOfId?");
+    }
+
+    @Test(description = "generate anyOf wrapper with primitive types using kotlinx_serialization")
+    public void anyOfPrimitiveKotlinxSerialization() throws IOException {
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .setLibrary("jvm-retrofit2")
+                .setAdditionalProperties(new HashMap<>() {{
+                    put(CodegenConstants.SERIALIZATION_LIBRARY, "kotlinx_serialization");
+                    put("generateOneOfAnyOfWrappers", true);
+                }})
+                .setInputSpec("src/test/resources/3_0/issue_19942.json")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+        final ClientOptInput clientOptInput = configurator.toClientOptInput();
+        DefaultGenerator generator = new DefaultGenerator();
+        generator.opts(clientOptInput).generate();
+
+        final Path anyOfModelKt = Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/ObjectWithComplexAnyOfId.kt");
+        // generates sealed interface (not data class)
+        TestUtils.assertFileContains(anyOfModelKt, "sealed interface ObjectWithComplexAnyOfId");
+        // has value class variants
+        TestUtils.assertFileContains(anyOfModelKt, "value class StringValue(val value: kotlin.String) : ObjectWithComplexAnyOfId");
+        // has a custom KSerializer
+        TestUtils.assertFileContains(anyOfModelKt, "object ObjectWithComplexAnyOfIdSerializer : KSerializer<ObjectWithComplexAnyOfId>");
+        // serializer handles primitive types via value class pattern
+        TestUtils.assertFileContains(anyOfModelKt, "is ObjectWithComplexAnyOfId.StringValue -> jsonEncoder.encodeString(value.value)");
+        // deserializer uses type guards
+        TestUtils.assertFileContains(anyOfModelKt, "jsonElement is JsonPrimitive && jsonElement.isString");
+        // parent model references the anyOf wrapper type
+        final Path parentModelKt = Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/ObjectWithComplexAnyOf.kt");
+        TestUtils.assertFileContains(parentModelKt, "val id: ObjectWithComplexAnyOfId?");
+    }
+
+    @Test(description = "generate oneOf/anyOf wrappers with explicit API mode using kotlinx_serialization")
+    public void oneOfAnyOfKotlinxSerializationExplicitApi() throws IOException {
+        File output = generateKotlinxOneOfAnyOf(new HashMap<>() {{ put(KotlinClientCodegen.EXPLICIT_API, true); }});
+        // value class nested inside sealed interface: public is valid, internal is not
+        TestUtils.assertFileContains(modelPath(output, "ObjectWithComplexOneOfId"),
+                "public value class StringValue(public val value: kotlin.String) : ObjectWithComplexOneOfId");
+        TestUtils.assertFileContains(modelPath(output, "ObjectWithComplexAnyOfId"),
+                "public value class StringValue(public val value: kotlin.String) : ObjectWithComplexAnyOfId");
+    }
+
+    @Test(description = "generate oneOf/anyOf wrappers with non-public API mode using kotlinx_serialization")
+    public void oneOfAnyOfKotlinxSerializationNonPublicApi() throws IOException {
+        File output = generateKotlinxOneOfAnyOf(new HashMap<>() {{ put(CodegenConstants.NON_PUBLIC_API, true); }});
+        // Kotlin doesn't allow internal subclasses of internal interfaces, make sure subclasses are generated correctly
+        TestUtils.assertFileContains(modelPath(output, "ObjectWithComplexOneOfId"),
+                "internal sealed interface ObjectWithComplexOneOfId");
+        TestUtils.assertFileNotContains(modelPath(output, "ObjectWithComplexOneOfId"),
+                "internal value class StringValue");
+        TestUtils.assertFileContains(modelPath(output, "ObjectWithComplexOneOfId"),
+                "value class StringValue(internal val value: kotlin.String) : ObjectWithComplexOneOfId");
+        TestUtils.assertFileContains(modelPath(output, "ObjectWithComplexAnyOfId"),
+                "internal sealed interface ObjectWithComplexAnyOfId");
+        TestUtils.assertFileNotContains(modelPath(output, "ObjectWithComplexAnyOfId"),
+                "internal value class StringValue");
+        TestUtils.assertFileContains(modelPath(output, "ObjectWithComplexAnyOfId"),
+                "value class StringValue(internal val value: kotlin.String) : ObjectWithComplexAnyOfId");
+    }
+
+    private File generateKotlinxOneOfAnyOf(Map<String, Object> extraProps) throws IOException {
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+        Map<String, Object> props = new HashMap<>();
+        props.put(CodegenConstants.SERIALIZATION_LIBRARY, "kotlinx_serialization");
+        props.put(GENERATE_ONEOF_ANYOF_WRAPPERS, true);
+        props.putAll(extraProps);
+        new DefaultGenerator()
+                .opts(new CodegenConfigurator()
+                        .setGeneratorName("kotlin")
+                        .setLibrary("jvm-retrofit2")
+                        .setAdditionalProperties(props)
+                        .setInputSpec("src/test/resources/3_0/issue_19942.json")
+                        .setOutputDir(output.getAbsolutePath().replace("\\", "/"))
+                        .toClientOptInput())
+                .generate();
+        return output;
+    }
+
+    private static Path modelPath(File output, String modelName) {
+        return Paths.get(output + "/src/main/kotlin/org/openapitools/client/models/" + modelName + ".kt");
+    }
+
     @Test(description = "generate polymorphic jackson model")
     public void polymorphicJacksonSerialization() throws IOException {
         File output = Files.createTempDirectory("test").toFile();
-//        output.deleteOnExit();
+        output.deleteOnExit();
 
         final CodegenConfigurator configurator = new CodegenConfigurator()
                 .setGeneratorName("kotlin")
@@ -604,6 +797,10 @@ public class KotlinClientCodegenModelTest {
         // base properties are present
         TestUtils.assertFileContains(animalKt, "val id");
         TestUtils.assertFileContains(animalKt, "val optionalProperty");
+        // base array with unique items = false is correctly handled as List
+        TestUtils.assertFileContains(animalKt, "val stringArray: kotlin.collections.List<kotlin.String>");
+        // base array with unique items = true is correctly handled as Set
+        TestUtils.assertFileContains(animalKt, "val stringSet: kotlin.collections.Set<kotlin.String>");
         // base doesn't contain discriminator
         TestUtils.assertFileNotContains(animalKt, "val discriminator");
 
@@ -613,8 +810,332 @@ public class KotlinClientCodegenModelTest {
         // derived properties are overridden
         TestUtils.assertFileContains(birdKt, "override val id");
         TestUtils.assertFileContains(birdKt, "override val optionalProperty");
+        // derived array with unique items = false is correctly handled as List and with override
+        TestUtils.assertFileContains(birdKt, "override val stringArray: kotlin.collections.List<kotlin.String>");
+        // derived array with unique items = true is correctly handled as Set and with override
+        TestUtils.assertFileContains(birdKt, "override val stringSet: kotlin.collections.Set<kotlin.String>");
         // derived doesn't contain disciminator
         TestUtils.assertFileNotContains(birdKt, "val discriminator");
+    }
+
+  @Test
+  public void testIntArrayToEnum() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-ktor")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+                put(ENUM_PROPERTY_NAMING, "UPPERCASE");
+              }})
+              .setInputSpec("src/test/resources/3_0/kotlin/issue15204-int-array-enum.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path modelKt = Paths.get(output + "/src/main/kotlin/model/ModelWithIntArrayEnum.kt");
+
+      TestUtils.assertFileContains(modelKt, "enum class DaysOfWeek(@get:JsonValue val value: kotlin.Int)");
+  }
+
+  @Test
+  public void testBooleanConstEnumUsesBooleanLiteral() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-ktor")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+                put(ENUM_PROPERTY_NAMING, "original");
+              }})
+              .setInputSpec("src/test/resources/3_1/kotlin/issue23550-boolean-const.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path modelKt = Paths.get(output + "/src/main/kotlin/model/ExceptionState.kt");
+
+      TestUtils.assertFileContains(modelKt,
+              "enum class ExceptionPeriodIsClosed(@get:JsonValue val value: kotlin.Boolean)",
+              "@JsonProperty(value = \"true\")",
+              "`true`(true);");
+      TestUtils.assertFileNotContains(modelKt, "`true`(\"true\")");
+  }
+
+  @Test
+  public void testJacksonEnumsUseJsonCreator() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-retrofit2")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+              }})
+              .setInputSpec("src/test/resources/3_0/kotlin/issue22534-kotlin-numeric-enum.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path enumKt = Paths.get(output + "/src/main/kotlin/model/ExampleNumericEnum.kt");
+
+      TestUtils.assertFileContains(enumKt, "@get:JsonValue");
+      TestUtils.assertFileContains(enumKt, "@JsonCreator");
+  }
+
+  @Test
+  public void testJacksonNestedEnumsUseJsonValue() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-retrofit2")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+              }})
+              .setInputSpec("src/test/resources/3_0/kotlin/issue23886-kotlin-nested-numeric-enum.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path modelKt = Paths.get(output + "/src/main/kotlin/model/ExampleModel.kt");
+
+      // Without @get:JsonValue, Jackson serializes the Int-valued nested enum by its name instead
+      // of its numeric value. The import must be present so the generated code compiles.
+      TestUtils.assertFileContains(modelKt, "import com.fasterxml.jackson.annotation.JsonValue");
+      TestUtils.assertFileContains(modelKt, "enum class Source(@get:JsonValue val value: kotlin.Int)");
+  }
+
+  @Test
+  public void testJacksonEnumsThrowForUnknownValue() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-retrofit2")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+              }})
+              .setInputSpec("src/test/resources/3_0/kotlin/issue22534-kotlin-numeric-enum.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path enumKt = Paths.get(output + "/src/main/kotlin/model/ExampleNumericEnum.kt");
+
+      // Verify that the decode function throws IllegalArgumentException for unknown values
+      TestUtils.assertFileContains(enumKt, "throw IllegalArgumentException(\"Unknown ExampleNumericEnum value: $data\")");
+  }
+
+  @Test
+  public void testJacksonEnumsExposeDecodeOrNullHelper() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-retrofit2")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+              }})
+              .setInputSpec("src/test/resources/3_0/kotlin/issue22534-kotlin-numeric-enum.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path enumKt = Paths.get(output + "/src/main/kotlin/model/ExampleNumericEnum.kt");
+
+      // decodeOrNull should always be generated alongside decode in the Jackson branch
+      // and must return null for unknown values without throwing.
+      TestUtils.assertFileContains(enumKt, "fun decodeOrNull(data: kotlin.Any?): ExampleNumericEnum?");
+      // decodeOrNull should not be annotated with @JsonCreator — only decode is the Jackson entry point.
+      // Verify by checking @JsonCreator appears exactly once in the file.
+      String content = new String(java.nio.file.Files.readAllBytes(enumKt), java.nio.charset.StandardCharsets.UTF_8);
+      int jsonCreatorCount = content.split("@JsonCreator", -1).length - 1;
+      Assert.assertEquals(jsonCreatorCount, 1,
+              "Expected exactly one @JsonCreator annotation in the generated enum, found " + jsonCreatorCount);
+  }
+
+  @Test
+  public void testJacksonEnumsWithUnknownDefaultCase() throws IOException {
+      File output = Files.createTempDirectory("test").toFile();
+      output.deleteOnExit();
+
+      final CodegenConfigurator configurator = new CodegenConfigurator()
+              .setGeneratorName("kotlin")
+              .setLibrary("jvm-retrofit2")
+              .setAdditionalProperties(new HashMap<>() {{
+                put(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+                put(CodegenConstants.MODEL_PACKAGE, "model");
+                put(CodegenConstants.ENUM_UNKNOWN_DEFAULT_CASE, "true");
+              }})
+              .setInputSpec("src/test/resources/3_0/kotlin/issue22534-kotlin-numeric-enum.yaml")
+              .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+      final ClientOptInput clientOptInput = configurator.toClientOptInput();
+      DefaultGenerator generator = new DefaultGenerator();
+
+      generator.opts(clientOptInput).generate();
+
+      final Path enumKt = Paths.get(output + "/src/main/kotlin/model/ExampleNumericEnum.kt");
+
+      // With enumUnknownDefaultCase=true, should return the default value instead of throwing
+      TestUtils.assertFileContains(enumKt, "@JsonEnumDefaultValue");
+      // Should NOT contain throw for unknown values when enumUnknownDefaultCase is enabled
+      TestUtils.assertFileNotContains(enumKt, "throw IllegalArgumentException(\"Unknown ExampleNumericEnum value");
+  }
+
+    @Test(description = "convert an empty model to object")
+    public void emptyModelKotlinxSerializationTest() throws IOException {
+        final Schema<?> schema = new ObjectSchema()
+                .description("an empty model");
+        final DefaultCodegen codegen = new KotlinClientCodegen();
+        codegen.processOpts();
+
+        OpenAPI openAPI = TestUtils.createOpenAPIWithOneSchema("EmptyModel", schema);
+        codegen.setOpenAPI(openAPI);
+
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .setAdditionalProperties(new HashMap<>() {{
+                    put(CodegenConstants.MODEL_PACKAGE, "model");
+                    put(GENERATE_ONEOF_ANYOF_WRAPPERS, false);
+                    put(SERIALIZATION_LIBRARY, "kotlinx_serialization");
+                }})
+                .setInputSpec("src/test/resources/3_0/kotlin/empty-model.yaml")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+        final ClientOptInput clientOptInput = configurator.toClientOptInput();
+        DefaultGenerator generator = new DefaultGenerator();
+        generator.opts(clientOptInput).generate();
+
+        final Path modelKt = Paths.get(output + "/src/main/kotlin/model/EmptyModel.kt");
+        TestUtils.assertFileNotContains(modelKt, "data class EmptyModel");
+    }
+
+    @Test
+    public void testCompanionObjectAdditionalProperty() {
+        final KotlinClientCodegen codegen = new KotlinClientCodegen();
+
+        // Default case, nothing provided
+        codegen.processOpts();
+
+        ConfigAssert configAssert = new ConfigAssert(codegen.additionalProperties());
+        // Default to false
+        configAssert.assertValue(COMPANION_OBJECT, codegen::getCompanionObject, Boolean.FALSE);
+
+        // Provide true
+        codegen.additionalProperties().put(COMPANION_OBJECT, true);
+        codegen.processOpts();
+
+        // Should be true
+        configAssert.assertValue(COMPANION_OBJECT, codegen::getCompanionObject, Boolean.TRUE);
+
+        // Provide false
+        codegen.additionalProperties().put(COMPANION_OBJECT, false);
+        codegen.processOpts();
+
+        // Should be false
+        configAssert.assertValue(COMPANION_OBJECT, codegen::getCompanionObject, Boolean.FALSE);
+    }
+
+    @Test
+    public void testCompanionObjectGeneratesCompanionInModel() throws IOException {
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .addAdditionalProperty(COMPANION_OBJECT, true)
+                .setInputSpec("src/test/resources/3_0/petstore.yaml")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"));
+
+        DefaultGenerator generator = new DefaultGenerator();
+        generator.opts(configurator.toClientOptInput()).generate();
+
+        Path petModel = Paths.get(output.getAbsolutePath() + "/src/main/kotlin/org/openapitools/client/models/Pet.kt");
+        TestUtils.assertFileContains(petModel, "companion object { }");
+    }
+
+    @Test(description = "nameMappings: @param:JsonProperty must use the original JSON field name for deserialization")
+    public void paramJsonPropertyAnnotationWithNameMappings() throws IOException {
+        // When a property is renamed via nameMappings, @param:JsonProperty must carry the
+        // original JSON field name so Jackson can deserialize from the correct JSON key.
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .setInputSpec("src/test/resources/3_0/kotlin/param-json-property.yaml")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"))
+                .addAdditionalProperty(CodegenConstants.SERIALIZATION_LIBRARY, "jackson")
+                .addNameMapping("snake_case_value", "mappedValue");
+
+        DefaultGenerator generator = new DefaultGenerator();
+        generator.opts(configurator.toClientOptInput()).generate();
+
+        Path itemModel = Paths.get(output.getAbsolutePath() + "/src/main/kotlin/org/openapitools/client/models/Item.kt");
+        // @param:JsonProperty must reference the original JSON key, not the mapped Kotlin name
+        TestUtils.assertFileContains(itemModel,
+                "@param:JsonProperty(\"snake_case_value\")\n    @get:JsonProperty(\"snake_case_value\")\n    val mappedValue");
+    }
+
+    @Test(description = "auto-renamed digit-starting property: @param:JsonProperty must use the original JSON field name")
+    public void paramJsonPropertyAnnotationWithDigitStartingPropertyName() throws IOException {
+        // When a property name starts with a digit, the Kotlin codegen wraps it in backticks
+        // (e.g. "2nd_field" -> `2ndField`). @param:JsonProperty must still carry the original
+        // JSON field name so that Jackson can deserialize it correctly.
+        File output = Files.createTempDirectory("test").toFile();
+        output.deleteOnExit();
+
+        final CodegenConfigurator configurator = new CodegenConfigurator()
+                .setGeneratorName("kotlin")
+                .setInputSpec("src/test/resources/3_0/kotlin/param-json-property.yaml")
+                .setOutputDir(output.getAbsolutePath().replace("\\", "/"))
+                .addAdditionalProperty(CodegenConstants.SERIALIZATION_LIBRARY, "jackson");
+
+        DefaultGenerator generator = new DefaultGenerator();
+        generator.opts(configurator.toClientOptInput()).generate();
+
+        Path itemModel = Paths.get(output.getAbsolutePath() + "/src/main/kotlin/org/openapitools/client/models/Item.kt");
+        // @param:JsonProperty must reference the original JSON key even when the property
+        // is auto-renamed to a backtick-escaped identifier
+        TestUtils.assertFileContains(itemModel,
+                "@param:JsonProperty(\"2nd_field\")\n    @get:JsonProperty(\"2nd_field\")\n    val `2ndField`");
     }
 
     private static class ModelNameTest {

@@ -7,6 +7,7 @@ from typing import Any, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 from openapi_server.models.api_response import ApiResponse
 from openapi_server.models.pet import Pet
+from fastapi import File, UploadFile
 from openapi_server.security_api import get_token_petstore_auth, get_token_api_key
 
 class BasePetApi:
@@ -15,7 +16,7 @@ class BasePetApi:
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         BasePetApi.subclasses = BasePetApi.subclasses + (cls,)
-    async def add_pet(
+    async def update_pet(
         self,
         pet: Annotated[Pet, Field(description="Pet object that needs to be added to the store")],
     ) -> Pet:
@@ -23,11 +24,10 @@ class BasePetApi:
         ...
 
 
-    async def delete_pet(
+    async def add_pet(
         self,
-        petId: Annotated[StrictInt, Field(description="Pet id to delete")],
-        api_key: Optional[StrictStr],
-    ) -> None:
+        pet: Annotated[Pet, Field(description="Pet object that needs to be added to the store")],
+    ) -> Pet:
         """"""
         ...
 
@@ -56,14 +56,6 @@ class BasePetApi:
         ...
 
 
-    async def update_pet(
-        self,
-        pet: Annotated[Pet, Field(description="Pet object that needs to be added to the store")],
-    ) -> Pet:
-        """"""
-        ...
-
-
     async def update_pet_with_form(
         self,
         petId: Annotated[StrictInt, Field(description="ID of pet that needs to be updated")],
@@ -74,11 +66,20 @@ class BasePetApi:
         ...
 
 
+    async def delete_pet(
+        self,
+        petId: Annotated[StrictInt, Field(description="Pet id to delete")],
+        api_key: Optional[StrictStr],
+    ) -> None:
+        """"""
+        ...
+
+
     async def upload_file(
         self,
         petId: Annotated[StrictInt, Field(description="ID of pet to update")],
         additional_metadata: Annotated[Optional[StrictStr], Field(description="Additional data to pass to server")],
-        file: Annotated[Optional[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]]], Field(description="file to upload")],
+        file: Optional[UploadFile],
     ) -> ApiResponse:
         """"""
         ...

@@ -45,6 +45,9 @@ import static java.util.Objects.nonNull;
 import static org.openapitools.codegen.utils.CamelizeOption.LOWERCASE_FIRST_LETTER;
 import static org.openapitools.codegen.utils.StringUtils.*;
 
+/**
+ * <p>Mustache templates are located in {@code src/main/resources/typescript-fetch/}.
+ */
 public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodegen {
     public static final String NPM_REPOSITORY = "npmRepository";
     public static final String WITH_INTERFACES = "withInterfaces";
@@ -61,6 +64,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
     public static final String PASCAL_CASE = "PascalCase";
     public static final String USE_SQUARE_BRACKETS_IN_ARRAY_NAMES = "useSquareBracketsInArrayNames";
     public static final String VALIDATION_ATTRIBUTES = "validationAttributes";
+    public static final String WITH_REQUEST_OPTS_IN_INTERFACE = "withRequestOptsInInterface";
 
     @Getter @Setter
     protected String npmRepository = null;
@@ -68,11 +72,14 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
     protected String importFileExtension = "";
     private boolean useSingleRequestParameter = true;
     private boolean prefixParameterInterfaces = false;
+    private boolean withRequestOptsInInterface = true;
     protected boolean addedApiIndex = false;
     protected boolean addedModelIndex = false;
     protected boolean withoutRuntimeChecks = false;
     protected boolean stringEnums = false;
     protected String fileNaming = PASCAL_CASE;
+    protected String apiDocPath = "docs";
+    protected String modelDocPath = "docs";
 
     // "Saga and Record" mode.
     public static final String SAGAS_AND_RECORDS = "sagasAndRecords";
@@ -85,6 +92,8 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
     private static final String X_ENTITY_ID = "x-entityId";
     private static final String X_OPERATION_RETURN_PASSTHROUGH = "x-operationReturnPassthrough";
     private static final String X_KEEP_AS_JS_OBJECT = "x-keepAsJSObject";
+    private static final String X_TYPESCRIPT_FETCH_API_EXAMPLE = "x-typescriptFetchApiExample";
+    private static final String BLOB_API_EXAMPLE = "new Blob(['example file content'], { type: 'application/octet-stream' })";
 
     protected boolean sagasAndRecords = false;
     @Getter @Setter
@@ -107,10 +116,12 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         // at the moment
         importMapping.clear();
 
-        outputFolder = "generated-code/typescript-fetch";
+        outputFolder = "generated-code" + File.separator + "typescript-fetch";
         embeddedTemplateDir = templateDir = "typescript-fetch";
 
         this.apiTemplateFiles.put("apis.mustache", ".ts");
+        this.apiDocTemplateFiles.put("api_doc.mustache", ".md");
+        this.modelDocTemplateFiles.put("model_doc.mustache", ".md");
 
         this.addExtraReservedWords();
 
@@ -126,6 +137,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         this.cliOptions.add(new CliOption(FILE_NAMING, "Naming convention for the output files: 'PascalCase', 'camelCase', 'kebab-case'.").defaultValue(this.fileNaming));
         this.cliOptions.add(new CliOption(USE_SQUARE_BRACKETS_IN_ARRAY_NAMES, "Setting this property to true will add brackets to array attribute names, e.g. my_values[].", SchemaTypeUtil.BOOLEAN_TYPE).defaultValue(Boolean.FALSE.toString()));
         this.cliOptions.add(new CliOption(VALIDATION_ATTRIBUTES, "Setting this property to true will generate the validation attributes of model properties.", SchemaTypeUtil.BOOLEAN_TYPE).defaultValue(Boolean.FALSE.toString()));
+        this.cliOptions.add(new CliOption(WITH_REQUEST_OPTS_IN_INTERFACE, "Setting this property to true will include *RequestOpts methods in the API interface declarations. Set to false to keep them only on the class.", SchemaTypeUtil.BOOLEAN_TYPE).defaultValue(Boolean.TRUE.toString()));
     }
 
     @Override
@@ -136,6 +148,11 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
     @Override
     public String toModelFilename(String name) {
         return convertUsingFileNamingConvention(super.toModelFilename(name));
+    }
+
+    @Override
+    public String toModelDocFilename(String name) {
+        return toModelName(name);
     }
 
     /**
@@ -242,6 +259,10 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         this.apiPackage = sourceDir + "apis";
         this.modelPackage = sourceDir + "models";
 
+        // make api and model doc path available in mustache template
+        additionalProperties.put("apiDocPath", apiDocPath);
+        additionalProperties.put("modelDocPath", modelDocPath);
+
         supportingFiles.add(new SupportingFile("index.mustache", sourceDir, "index.ts"));
         supportingFiles.add(new SupportingFile("runtime.mustache", sourceDir, "runtime.ts"));
 
@@ -260,6 +281,11 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         }
         writePropertyBack(PREFIX_PARAMETER_INTERFACES, getPrefixParameterInterfaces());
 
+        if (additionalProperties.containsKey(WITH_REQUEST_OPTS_IN_INTERFACE)) {
+            this.setWithRequestOptsInInterface(convertPropertyToBoolean(WITH_REQUEST_OPTS_IN_INTERFACE));
+        }
+        writePropertyBack(WITH_REQUEST_OPTS_IN_INTERFACE, getWithRequestOptsInInterface());
+
         if (additionalProperties.containsKey(NPM_NAME)) {
             addNpmPackageGeneration();
         }
@@ -270,6 +296,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
 
         if (additionalProperties.containsKey(STRING_ENUMS)) {
             this.setStringEnums(convertPropertyToBoolean(STRING_ENUMS));
+            additionalProperties.put("stringEnums", this.stringEnums);
         }
 
         if (additionalProperties.containsKey(FILE_NAMING)) {
@@ -317,6 +344,16 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
     }
 
     @Override
+    public String apiDocFileFolder() {
+        return (outputFolder + File.separator + apiDocPath);
+    }
+
+    @Override
+    public String modelDocFileFolder() {
+        return (outputFolder + File.separator + modelDocPath);
+    }
+
+    @Override
     public String toEnumDefaultValue(String value, String datatype) {
         if (this.getSagasAndRecords()) {
             return datatype + "." + value;
@@ -359,6 +396,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
 
     @Override
     public ModelsMap postProcessModels(ModelsMap objs) {
+        // postProcessModelsEnum applies inner enum fixes via the parent class override
         List<ModelMap> models = postProcessModelsEnum(objs).getModels();
 
         // process enum and custom properties in models
@@ -380,9 +418,44 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
     @Override
     public void postProcessParameter(CodegenParameter parameter) {
         super.postProcessParameter(parameter);
-        if (parameter.isFormParam && parameter.isArray && "binary".equals(parameter.dataFormat)) {
+        if (isBinaryFormArray(parameter)) {
+            parameter.isFile = true;
             parameter.isCollectionFormatMulti = true;
         }
+    }
+
+    private void addMultipartFileArrayApiExampleValues(OperationsMap operations) {
+        for (CodegenOperation operation : operations.getOperations().getOperation()) {
+            if (operation.allParams == null || operation.allParams.stream().noneMatch(TypeScriptFetchClientCodegen::isBinaryFormArray)) {
+                continue;
+            }
+
+            for (CodegenParameter parameter : operation.allParams) {
+                setApiExampleValue(parameter);
+            }
+        }
+    }
+
+    private void setApiExampleValue(CodegenParameter parameter) {
+        String example = toApiExampleValue(parameter);
+        if (example != null) {
+            parameter.vendorExtensions.put(X_TYPESCRIPT_FETCH_API_EXAMPLE, example);
+        }
+    }
+
+    private String toApiExampleValue(CodegenParameter parameter) {
+        if (isBinaryFormArray(parameter)) {
+            return "[" + BLOB_API_EXAMPLE + "]";
+        } else if (parameter.isFile || parameter.isBinary) {
+            return BLOB_API_EXAMPLE;
+        } else if (parameter.isString) {
+            String example = parameter.example;
+            if (example == null) {
+                example = parameter.paramName + "_example";
+            }
+            return "'" + escapeText(example) + "'";
+        }
+        return null;
     }
 
     @Override
@@ -424,6 +497,22 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
                 if (codegenModel.isEntity) {
                     entityModelClassnames.add(codegenModel.classname);
                 }
+            }
+        }
+
+        // Build a set of classnames that are oneOf models (union types)
+        Set<String> oneOfModelNames = allModels.stream()
+                .filter(m -> !m.oneOf.isEmpty())
+                .map(m -> m.classname)
+                .collect(Collectors.toSet());
+
+        // Mark models whose parent is a oneOf model — these cannot use
+        // "interface X extends Parent" because TypeScript does not allow
+        // an interface to extend a union type.  They use
+        // "type X = Parent & { ... }" instead.
+        for (ExtendedCodegenModel m : allModels) {
+            if (m.parent != null && oneOfModelNames.contains(m.parent)) {
+                m.parentIsOneOf = true;
             }
         }
 
@@ -516,10 +605,10 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         supportingFiles.add(new SupportingFile("package.mustache", "", "package.json"));
         supportingFiles.add(new SupportingFile("tsconfig.mustache", "", "tsconfig.json"));
-        // in case ECMAScript 6 is supported add another tsconfig for an ESM (ECMAScript Module)
-        if (supportsES6) {
-            supportingFiles.add(new SupportingFile("tsconfig.esm.mustache", "", "tsconfig.esm.json"));
-        }
+
+        // by default ECMAScript 6 is supported add another tsconfig for an ESM (ECMAScript Module)
+        supportingFiles.add(new SupportingFile("tsconfig.esm.mustache", "", "tsconfig.esm.json"));
+
         supportingFiles.add(new SupportingFile("npmignore.mustache", "", ".npmignore"));
         supportingFiles.add(new SupportingFile("gitignore", "", ".gitignore"));
     }
@@ -694,6 +783,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         }
         this.addOperationObjectResponseInformation(operations);
         this.addOperationPrefixParameterInterfacesInformation(operations);
+        this.addMultipartFileArrayApiExampleValues(operations);
 
         return operations;
     }
@@ -776,7 +866,8 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
             for (CodegenProperty cpVar : cm.allVars) {
                 ExtendedCodegenProperty var = (ExtendedCodegenProperty) cpVar;
 
-                if (Boolean.TRUE.equals(var.isEnum)) {
+                // Handle both direct enum properties and inner enums (maps/arrays of enums)
+                if (Boolean.TRUE.equals(var.isEnum) || Boolean.TRUE.equals(var.isInnerEnum)) {
                     var.datatypeWithEnum = var.datatypeWithEnum
                             .replace(var.enumName, cm.classname + var.enumName);
                 }
@@ -821,7 +912,9 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
 
     private boolean processCodegenProperty(ExtendedCodegenProperty var, String parentClassName, Object xEntityId) {
         // name enum with model name, e.g. StatusEnum => PetStatusEnum
-        if (Boolean.TRUE.equals(var.isEnum)) {
+        // This applies to both direct enum properties (isEnum) and properties containing
+        // inner enums (isInnerEnum) like maps or arrays of enums.
+        if (Boolean.TRUE.equals(var.isEnum) || Boolean.TRUE.equals(var.isInnerEnum)) {
             // behaviour for enum names is specific for Typescript Fetch, not using namespaces
             var.datatypeWithEnum = var.datatypeWithEnum.replace(var.enumName, parentClassName + var.enumName);
 
@@ -902,6 +995,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
             existingClassNames.add(className);
             existingRecordClassNames.add(className + "Record");
             im.put("className", className);
+            im.put("classFileName", convertUsingFileNamingConvention(className));
         }
 
         if (this.getSagasAndRecords()) {
@@ -1054,6 +1148,14 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
 
     private void setPrefixParameterInterfaces(boolean prefixParameterInterfaces) {
         this.prefixParameterInterfaces = prefixParameterInterfaces;
+    }
+
+    private boolean getWithRequestOptsInInterface() {
+        return withRequestOptsInInterface;
+    }
+
+    private void setWithRequestOptsInInterface(boolean withRequestOptsInInterface) {
+        this.withRequestOptsInInterface = withRequestOptsInInterface;
     }
 
     private static boolean itemsAreUniqueId(CodegenProperty items) {
@@ -1338,6 +1440,7 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
             this.xmlName = cp.xmlName;
             this.xmlNamespace = cp.xmlNamespace;
             this.isXmlWrapped = cp.isXmlWrapped;
+            this.setHasSanitizedName(cp.getHasSanitizedName());
         }
 
         @Override
@@ -1499,11 +1602,18 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
         public Set<String> oneOfArrays = new TreeSet<>();
         @Getter @Setter
         public Set<CodegenProperty> oneOfPrimitives = new HashSet<>();
+        @Getter @Setter
+        public CodegenDiscriminator.MappedModel selfReferencingDiscriminatorMapping;
+        @Getter @Setter
+        public boolean parentIsOneOf; // true when this model's parent is a oneOf union type
 
         public boolean isEntity; // Is a model containing an "id" property marked as isUniqueId
         public String returnPassthrough;
         public boolean hasReturnPassthroughVoid;
 
+        public boolean hasSelfReferencingDiscriminatorMapping(){
+            return selfReferencingDiscriminatorMapping != null;
+        }
         public boolean isDateType() {
             return isDate && "Date".equals(dataType);
         }
@@ -1597,6 +1707,17 @@ public class TypeScriptFetchClientCodegen extends AbstractTypeScriptClientCodege
             this.setAdditionalProperties(cm.getAdditionalProperties());
             this.setIsModel(cm.getIsModel());
             this.setComposedSchemas(cm.getComposedSchemas());
+            if (this.discriminator != null) {
+                Set<CodegenDiscriminator.MappedModel> mappedModels = this.discriminator.getMappedModels();
+                for(CodegenDiscriminator.MappedModel mappedModel : mappedModels) {
+                    if(mappedModel.getModelName().equals(cm.classname)) {
+                        this.selfReferencingDiscriminatorMapping = mappedModel;
+                    }
+                }
+                if(this.selfReferencingDiscriminatorMapping != null) {
+                    this.discriminator.getMappedModels().remove(this.selfReferencingDiscriminatorMapping);
+                }
+            }
         }
 
         @Override

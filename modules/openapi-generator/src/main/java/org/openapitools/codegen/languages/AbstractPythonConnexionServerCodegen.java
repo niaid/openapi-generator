@@ -34,6 +34,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.meta.features.DocumentationFeature;
@@ -46,6 +47,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.openapitools.codegen.CodegenConstants.X_MODIFIERS;
+import static org.openapitools.codegen.CodegenConstants.X_REGEX;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 
 public abstract class AbstractPythonConnexionServerCodegen extends AbstractPythonCodegen implements CodegenConfig {
@@ -305,8 +308,13 @@ public abstract class AbstractPythonConnexionServerCodegen extends AbstractPytho
 
     @Override
     public String toApiName(String name) {
-        if (name == null || name.length() == 0) {
-            return "DefaultController";
+        if (name == null || name.length() == 0 || "default".equalsIgnoreCase(name)) {
+            // Operations without a tag are grouped under the "default" tag. Honor the
+            // configurable defaultController module name for them (issue #1891); this
+            // drives both the generated controller file name and connexion's
+            // x-openapi-router-controller routing, keeping the two consistent.
+            String controller = defaultController != null ? defaultController : "default_controller";
+            return camelize(controller);
         }
         return camelize(name) + "Controller";
     }
@@ -599,7 +607,7 @@ public abstract class AbstractPythonConnexionServerCodegen extends AbstractPytho
     @Override
     public String toModelImport(String name) {
         String modelImport;
-        if (StringUtils.startsWithAny(name, "import", "from")) {
+        if (Strings.CS.startsWithAny(name, "import", "from")) {
             modelImport = name;
         } else {
             modelImport = "from ";
@@ -743,8 +751,8 @@ public abstract class AbstractPythonConnexionServerCodegen extends AbstractPytho
                 }
             }
 
-            vendorExtensions.put("x-regex", regex);
-            vendorExtensions.put("x-modifiers", modifiers);
+            vendorExtensions.put(X_REGEX, regex);
+            vendorExtensions.put(X_MODIFIERS, modifiers);
         }
     }
 }

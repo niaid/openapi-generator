@@ -2,6 +2,7 @@ package org.openapitools.virtualan.model;
 
 import java.net.URI;
 import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -14,50 +15,60 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.lang.Nullable;
 import org.openapitools.jackson.nullable.JsonNullable;
 import java.time.OffsetDateTime;
-import javax.validation.Valid;
-import javax.validation.constraints.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 
 import java.util.*;
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 /**
  * FormatTest
  */
 
 @JsonTypeName("format_test")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.16.0-SNAPSHOT")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", comments = "Generator version: 7.24.0-SNAPSHOT")
 public class FormatTest {
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable Integer integer;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable Integer int32;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable Long int64;
 
   private BigDecimal number;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable Float _float;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable Double _double;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable String string;
 
   private byte[] _byte;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable org.springframework.core.io.Resource binary;
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate date;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private @Nullable OffsetDateTime dateTime;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable UUID uuid;
 
   private String password;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable BigDecimal bigDecimal;
 
   public FormatTest() {
@@ -85,13 +96,14 @@ public class FormatTest {
    * maximum: 100
    * @return integer
    */
-  @Min(10) @Max(100) 
+  @Min(value = 10) @Max(value = 100) 
   @Schema(name = "integer", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("integer")
   public @Nullable Integer getInteger() {
     return integer;
   }
 
+  @JsonProperty("integer")
   public void setInteger(@Nullable Integer integer) {
     this.integer = integer;
   }
@@ -107,13 +119,14 @@ public class FormatTest {
    * maximum: 200
    * @return int32
    */
-  @Min(20) @Max(200) 
+  @Min(value = 20) @Max(value = 200) 
   @Schema(name = "int32", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("int32")
   public @Nullable Integer getInt32() {
     return int32;
   }
 
+  @JsonProperty("int32")
   public void setInt32(@Nullable Integer int32) {
     this.int32 = int32;
   }
@@ -134,6 +147,7 @@ public class FormatTest {
     return int64;
   }
 
+  @JsonProperty("int64")
   public void setInt64(@Nullable Long int64) {
     this.int64 = int64;
   }
@@ -149,13 +163,14 @@ public class FormatTest {
    * maximum: 543.2
    * @return number
    */
-  @NotNull @Valid @DecimalMin("32.1") @DecimalMax("543.2") 
+  @NotNull @Valid @DecimalMin(value = "32.1") @DecimalMax(value = "543.2") 
   @Schema(name = "number", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("number")
   public BigDecimal getNumber() {
     return number;
   }
 
+  @JsonProperty("number")
   public void setNumber(BigDecimal number) {
     this.number = number;
   }
@@ -171,13 +186,14 @@ public class FormatTest {
    * maximum: 987.6
    * @return _float
    */
-  @DecimalMin("54.3") @DecimalMax("987.6") 
+  @DecimalMin(value = "54.3") @DecimalMax(value = "987.6") 
   @Schema(name = "float", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("float")
   public @Nullable Float getFloat() {
     return _float;
   }
 
+  @JsonProperty("float")
   public void setFloat(@Nullable Float _float) {
     this._float = _float;
   }
@@ -193,13 +209,14 @@ public class FormatTest {
    * maximum: 123.4
    * @return _double
    */
-  @DecimalMin("67.8") @DecimalMax("123.4") 
+  @DecimalMin(value = "67.8") @DecimalMax(value = "123.4") 
   @Schema(name = "double", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("double")
   public @Nullable Double getDouble() {
     return _double;
   }
 
+  @JsonProperty("double")
   public void setDouble(@Nullable Double _double) {
     this._double = _double;
   }
@@ -213,13 +230,14 @@ public class FormatTest {
    * Get string
    * @return string
    */
-  @Pattern(regexp = "/[a-z]/i") 
+  @Pattern(regexp = "[a-zA-Z]") 
   @Schema(name = "string", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("string")
   public @Nullable String getString() {
     return string;
   }
 
+  @JsonProperty("string")
   public void setString(@Nullable String string) {
     this.string = string;
   }
@@ -240,6 +258,7 @@ public class FormatTest {
     return _byte;
   }
 
+  @JsonProperty("byte")
   public void setByte(byte[] _byte) {
     this._byte = _byte;
   }
@@ -260,6 +279,7 @@ public class FormatTest {
     return binary;
   }
 
+  @JsonProperty("binary")
   public void setBinary(@Nullable org.springframework.core.io.Resource binary) {
     this.binary = binary;
   }
@@ -280,6 +300,7 @@ public class FormatTest {
     return date;
   }
 
+  @JsonProperty("date")
   public void setDate(LocalDate date) {
     this.date = date;
   }
@@ -300,6 +321,7 @@ public class FormatTest {
     return dateTime;
   }
 
+  @JsonProperty("dateTime")
   public void setDateTime(@Nullable OffsetDateTime dateTime) {
     this.dateTime = dateTime;
   }
@@ -320,6 +342,7 @@ public class FormatTest {
     return uuid;
   }
 
+  @JsonProperty("uuid")
   public void setUuid(@Nullable UUID uuid) {
     this.uuid = uuid;
   }
@@ -340,6 +363,7 @@ public class FormatTest {
     return password;
   }
 
+  @JsonProperty("password")
   public void setPassword(String password) {
     this.password = password;
   }
@@ -360,6 +384,7 @@ public class FormatTest {
     return bigDecimal;
   }
 
+  @JsonProperty("BigDecimal")
   public void setBigDecimal(@Nullable BigDecimal bigDecimal) {
     this.bigDecimal = bigDecimal;
   }
@@ -420,11 +445,8 @@ public class FormatTest {
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).
    */
-  private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+  private String toIndentedString(@Nullable Object o) {
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

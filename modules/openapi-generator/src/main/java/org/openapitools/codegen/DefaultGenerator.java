@@ -61,6 +61,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.openapitools.codegen.CodegenConstants.X_INTERNAL;
 import static org.openapitools.codegen.utils.OnceLogger.once;
 
 @SuppressWarnings("rawtypes")
@@ -85,16 +86,17 @@ public class DefaultGenerator implements Generator {
     private String basePath;
     private String basePathWithoutHost;
     private String contextPath;
-    private Map<String, String> generatorPropertyDefaults = new HashMap<>();
+    private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     /**
      * Retrieves an instance to the configured template processor, available after user-defined options are
      * applied via
      */
-    @Getter protected TemplateProcessor templateProcessor = null;
+    @Getter
+    protected TemplateProcessor templateProcessor = null;
 
     private List<TemplateDefinition> userDefinedTemplates = new ArrayList<>();
-    private String generatorCheck = "spring";
-    private String templateCheck = "apiController.mustache";
+    private final String generatorCheck = "spring";
+    private final String templateCheck = "apiController.mustache";
 
 
     public DefaultGenerator() {
@@ -265,8 +267,7 @@ public class DefaultGenerator implements Generator {
                 openapiNormalizer.normalize();
             }
         } catch (Exception e) {
-            LOGGER.error("An exception occurred in OpenAPI Normalizer. Please report the issue via https://github.com/openapitools/openapi-generator/issues/new/: ");
-            e.printStackTrace();
+            LOGGER.error("An exception occurred in OpenAPI Normalizer. Please report the issue via https://github.com/openapitools/openapi-generator/issues/new/: ", e);
         }
 
         // resolve inline models
@@ -403,6 +404,17 @@ public class DefaultGenerator implements Generator {
         }
     }
 
+    /**
+     * Returns {@code true} if the named schema should be generated even when it appears in
+     * schemaMappings or importMappings. This is the case when the schema name is explicitly
+     * listed in {@code forcedGenerateSchemas} or when the wildcard
+     * {@link CodegenConstants#FORCE_GENERATE_ALL_SCHEMAS} ({@code "*"}) is present.
+     */
+    private boolean isNotForcedGenerate(String schemaName) {
+        return !config.forcedGenerateSchemas().contains(CodegenConstants.FORCE_GENERATE_ALL_SCHEMAS)
+                && !config.forcedGenerateSchemas().contains(schemaName);
+    }
+
     private void generateModelDocumentation(List<File> files, Map<String, Object> models, String modelName) throws IOException {
         for (String templateName : config.modelDocTemplateFiles().keySet()) {
             String docExtension = config.getDocExtension();
@@ -466,8 +478,8 @@ public class DefaultGenerator implements Generator {
         for (String name : modelKeys) {
             processedModels.add(name);
             try {
-                //don't generate models that have an import mapping
-                if (config.schemaMapping().containsKey(name)) {
+                //don't generate models that have an import mapping or are in the list of schemas to always generate
+                if (config.schemaMapping().containsKey(name) && isNotForcedGenerate(name)) {
                     LOGGER.info("Model {} not generated due to schema mapping", name);
                     continue;
                 }
@@ -486,7 +498,7 @@ public class DefaultGenerator implements Generator {
 
                 Schema schema = ModelUtils.getSchemas(this.openAPI).get(name);
 
-                if (schema.getExtensions() != null && Boolean.TRUE.equals(schema.getExtensions().get("x-internal"))) {
+                if (schema.getExtensions() != null && Boolean.TRUE.equals(schema.getExtensions().get(X_INTERNAL))) {
                     LOGGER.info("Model {} not generated since x-internal is set to true", name);
                     continue;
                 } else if (ModelUtils.isFreeFormObject(schema, openAPI)) { // check to see if it's a free-form object
@@ -548,8 +560,8 @@ public class DefaultGenerator implements Generator {
             ModelsMap models = allProcessedModels.get(modelName);
             models.put("modelPackage", config.modelPackage());
             try {
-                //don't generate models that have a schema mapping
-                if (config.schemaMapping().containsKey(modelName)) {
+                //don't generate models that have a schema mapping or are in the list of schemas to always generate
+                if (config.schemaMapping().containsKey(modelName) && isNotForcedGenerate(modelName)) {
                     continue;
                 }
 
@@ -567,6 +579,20 @@ public class DefaultGenerator implements Generator {
                         }
                     }
                     allModels.add(modelTemplate);
+                }
+
+                // Don't generate model files for types that were explicitly type-mapped
+                // AND whose mapped name has a corresponding import mapping.
+                // This indicates the user wants to replace the schema type with an
+                // external type (e.g. --type-mappings Address=CustomAddress
+                // --import-mappings CustomAddress=package:custom/address.dart).
+                // The model metadata is still kept in allModels for use by supporting file templates.
+                if (config.typeMapping().containsKey(modelName)) {
+                    String mappedTypeName = config.typeMapping().get(modelName);
+                    if (config.importMapping().containsKey(mappedTypeName)) {
+                        LOGGER.info("Model {} (type-mapped to {}) not generated due to import mapping", modelName, mappedTypeName);
+                        continue;
+                    }
                 }
 
                 // to generate model files
@@ -606,10 +632,10 @@ public class DefaultGenerator implements Generator {
             if (!processedModels.contains(key) && allSchemas.containsKey(key)) {
                 generateModels(files, allModels, unusedModels, aliasModels, processedModels, () -> Set.of(key));
             } else {
-                LOGGER.info("Type " + variable.getComplexType() + " of variable " + variable.getName() + " could not be resolve because it is not declared as a model.");
+                LOGGER.info("Type {} of variable {} could not be resolve because it is not declared as a model.", variable.getComplexType(), variable.getName());
             }
         } else {
-            LOGGER.info("Type " + variable.getOpenApiType() + " of variable " + variable.getName() + " could not be resolve because it is not declared as a model.");
+            LOGGER.info("Type {} of variable {} could not be resolve because it is not declared as a model.", variable.getOpenApiType(), variable.getName());
         }
     }
 
@@ -638,8 +664,8 @@ public class DefaultGenerator implements Generator {
         }
 
         return Arrays.stream(propertyRaw.split(","))
-            .map(String::trim)
-            .collect(Collectors.toSet());
+                .map(String::trim)
+                .collect(Collectors.toSet());
     }
 
     private Set<String> modelKeys() {
@@ -664,7 +690,6 @@ public class DefaultGenerator implements Generator {
         return modelKeys;
     }
 
-    @SuppressWarnings("unchecked")
     void generateApis(List<File> files, List<OperationsMap> allOperations, List<ModelMap> allModels) {
         if (!generateApis) {
             // TODO: Process these anyway and present info via dryRun?
@@ -1005,7 +1030,7 @@ public class DefaultGenerator implements Generator {
         File ignoreFile = new File(ignoreFileNameTarget);
         // use the entries provided by the users to pre-populate .openapi-generator-ignore
         try {
-            LOGGER.info("Writing file " + ignoreFileNameTarget + " (which is always overwritten when the option `openapiGeneratorIgnoreFile` is enabled.)");
+            LOGGER.info("Writing file {} (which is always overwritten when the option `openapiGeneratorIgnoreFile` is enabled.)", ignoreFileNameTarget);
             new File(config.outputFolder()).mkdirs();
             if (!ignoreFile.createNewFile()) {
                 // file may already exist, do nothing
@@ -1429,7 +1454,10 @@ public class DefaultGenerator implements Generator {
         return processTemplateToFile(templateData, templateName, outputFilename, shouldGenerate, skippedByOption, this.config.getOutputDir());
     }
 
-    private final Set<String> seenFiles = new HashSet<>();
+    /**
+     * Stores lowercased absolute paths for O(1) case-insensitive duplicate detection.
+     */
+    private final Set<String> seenFilesLower = new HashSet<>();
 
     private File processTemplateToFile(Map<String, Object> templateData, String templateName, String outputFilename, boolean shouldGenerate, String skippedByOption, String intendedOutputDir) throws IOException {
         String adjustedOutputFilename = outputFilename.replaceAll("//", "/").replace('/', File.separatorChar);
@@ -1442,10 +1470,10 @@ public class DefaultGenerator implements Generator {
                     throw new RuntimeException(String.format(Locale.ROOT, "Target files must be generated within the output directory; absoluteTarget=%s outDir=%s", absoluteTarget, outDir));
                 }
 
-                if (seenFiles.stream().filter(f -> f.toLowerCase(Locale.ROOT).equals(absoluteTarget.toString().toLowerCase(Locale.ROOT))).findAny().isPresent()) {
-                    LOGGER.warn("Duplicate file path detected. Not all operating systems can handle case sensitive file paths. path={}", absoluteTarget.toString());
+                // O(1) case-insensitive duplicate check via a pre-lowercased shadow set
+                if (!seenFilesLower.add(absoluteTarget.toString().toLowerCase(Locale.ROOT))) {
+                    LOGGER.warn("Duplicate file path detected. Not all operating systems can handle case sensitive file paths. path={}", absoluteTarget);
                 }
-                seenFiles.add(absoluteTarget.toString());
                 return this.templateProcessor.write(templateData, templateName, target);
             } else {
                 this.templateProcessor.skip(target.toPath(), String.format(Locale.ROOT, "Skipped by %s options supplied by user.", skippedByOption));
@@ -1564,7 +1592,7 @@ public class DefaultGenerator implements Generator {
         final List<SecurityRequirement> globalSecurities = openAPI.getSecurity();
         for (Tag tag : tags) {
             try {
-                if (operation.getExtensions() != null && Boolean.TRUE.equals(operation.getExtensions().get("x-internal"))) {
+                if (operation.getExtensions() != null && Boolean.TRUE.equals(operation.getExtensions().get(X_INTERNAL))) {
                     // skip operation if x-internal sets to true
                     LOGGER.info("Operation ({} {} - {}) not generated since x-internal is set to true",
                             httpMethod, resourcePath, operation.getOperationId());
@@ -2001,10 +2029,8 @@ public class DefaultGenerator implements Generator {
                     }
                 });
 
-                Collections.sort(relativePaths, (a, b) -> IOCase.SENSITIVE.checkCompareTo(a, b));
-                relativePaths.forEach(relativePath -> {
-                    sb.append(relativePath).append(System.lineSeparator());
-                });
+                relativePaths.sort(IOCase.SENSITIVE::checkCompareTo);
+                relativePaths.forEach(relativePath -> sb.append(relativePath).append(System.lineSeparator()));
 
                 String targetFile = config.outputFolder() + File.separator + METADATA_DIR + File.separator + config.getFilesMetadataFilename();
 

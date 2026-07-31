@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use axum::extract::*;
-use axum_extra::extract::{CookieJar, Host};
+use axum_extra::extract::CookieJar;
 use bytes::Bytes;
+use headers::Host;
 use http::Method;
 use serde::{Deserialize, Serialize};
 
@@ -149,6 +150,14 @@ pub enum OverrideServerGetResponse {
 pub enum ParamgetGetResponse {
     /// JSON rsp
     Status200_JSONRsp(models::AnotherXmlObject),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[must_use]
+#[allow(clippy::large_enum_variant)]
+pub enum QueryExampleGetResponse {
+    /// OK
+    Status200_OK,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -445,6 +454,18 @@ pub trait Default<E: std::fmt::Debug + Send + Sync + 'static = ()>: super::Error
         cookies: &CookieJar,
         query_params: &models::ParamgetGetQueryParams,
     ) -> Result<ParamgetGetResponse, E>;
+
+    /// Test required query params with and without examples.
+    ///
+    /// QueryExampleGet - GET /query-example
+    async fn query_example_get(
+        &self,
+
+        method: &Method,
+        host: &Host,
+        cookies: &CookieJar,
+        query_params: &models::QueryExampleGetQueryParams,
+    ) -> Result<QueryExampleGetResponse, E>;
 
     /// ReadonlyAuthSchemeGet - GET /readonly_auth_scheme
     async fn readonly_auth_scheme_get(

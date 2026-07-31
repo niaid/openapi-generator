@@ -11,31 +11,30 @@
 part of openapi.api;
 
 
-class TestEnum {
-  /// Instantiate a new enum with the provided [value].
-  const TestEnum._(this.value);
+enum TestEnum {
+  empty._(r''),
+  valueOne._(r'value_one'),
+  valueTwo._(r'value_two'),
+  ;
+
+  /// Instantiate a new enum with the provided value.
+  const TestEnum._(this._value);
 
   /// The underlying value of this enum member.
-  final String value;
+  final String _value;
 
   @override
-  String toString() => value;
+  String toString() => _value;
 
-  String toJson() => value;
+  /// Encodes this enum as a value suitable for JSON.
+  String toJson() => _value;
 
-  static const empty = TestEnum._(r'');
-  static const n1 = TestEnum._(r'1');
-  static const n2 = TestEnum._(r'2');
-
-  /// List of all possible values in this [enum][TestEnum].
-  static const values = <TestEnum>[
-    empty,
-    n1,
-    n2,
-  ];
-
+  /// Returns the instance of [TestEnum] that was successfully decoded
+  /// from the passed [value] on success, null otherwise.
   static TestEnum? fromJson(dynamic value) => TestEnumTypeTransformer().decode(value);
 
+  /// Returns a [List] containing instances of [TestEnum]
+  /// that were successfully decoded from the passed [JSON][json].
   static List<TestEnum> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <TestEnum>[];
     if (json is List && json.isNotEmpty) {
@@ -57,9 +56,11 @@ class TestEnumTypeTransformer {
 
   const TestEnumTypeTransformer._();
 
-  String encode(TestEnum data) => data.value;
+  /// Encodes this enum as a value suitable for JSON.
+  String encode(TestEnum data) => data._value;
 
-  /// Decodes a [dynamic value][data] to a TestEnum.
+  /// Returns the instance of [TestEnum] that was successfully decoded
+  /// from the passed [data] value on success, null otherwise.
   ///
   /// If [allowNull] is true and the [dynamic value][data] cannot be decoded successfully,
   /// then null is returned. However, if [allowNull] is false and the [dynamic value][data]
@@ -68,11 +69,14 @@ class TestEnumTypeTransformer {
   /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
   /// and users are still using an old app with the old code.
   TestEnum? decode(dynamic data, {bool allowNull = true}) {
+    if (data is TestEnum) {
+      return data;
+    }
     if (data != null) {
       switch (data) {
         case r'': return TestEnum.empty;
-        case r'1': return TestEnum.n1;
-        case r'2': return TestEnum.n2;
+        case r'value_one': return TestEnum.valueOne;
+        case r'value_two': return TestEnum.valueTwo;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,7 +86,7 @@ class TestEnumTypeTransformer {
     return null;
   }
 
-  /// Singleton [TestEnumTypeTransformer] instance.
+  /// The singleton instance of this transformer.
   static TestEnumTypeTransformer? _instance;
 }
 

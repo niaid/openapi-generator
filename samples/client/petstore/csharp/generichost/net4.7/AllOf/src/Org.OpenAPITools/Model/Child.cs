@@ -25,7 +25,7 @@ using Org.OpenAPITools.Client;
 namespace Org.OpenAPITools.Model
 {
     /// <summary>
-    /// A representation of a child
+    /// Child
     /// </summary>
     public partial class Child : Person, IValidatableObject
     {
@@ -33,11 +33,11 @@ namespace Org.OpenAPITools.Model
         /// Initializes a new instance of the <see cref="Child" /> class.
         /// </summary>
         /// <param name="age">age</param>
+        /// <param name="boosterSeat">boosterSeat</param>
         /// <param name="firstName">firstName</param>
         /// <param name="lastName">lastName</param>
-        /// <param name="boosterSeat">boosterSeat</param>
         [JsonConstructor]
-        public Child(Option<int?> age = default, Option<string> firstName = default, Option<string> lastName = default, Option<bool?> boosterSeat = default) : base(firstName, lastName)
+        public Child(Option<int?> age = default, Option<bool?> boosterSeat = default, Option<string> firstName = default, Option<string> lastName = default) : base(firstName, lastName)
         {
             AgeOption = age;
             BoosterSeatOption = boosterSeat;
@@ -57,7 +57,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Age
         /// </summary>
         [JsonPropertyName("age")]
-        public int? Age { get { return this.AgeOption; } set { this.AgeOption = new Option<int?>(value); } }
+        public int? Age { get { return this.AgeOption.Value; } set { this.AgeOption = new Option<int?>(value); } }
 
         /// <summary>
         /// Used to track the state of BoosterSeat
@@ -70,7 +70,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets BoosterSeat
         /// </summary>
         [JsonPropertyName("boosterSeat")]
-        public bool? BoosterSeat { get { return this.BoosterSeatOption; } set { this.BoosterSeatOption = new Option<bool?>(value); } }
+        public bool? BoosterSeat { get { return this.BoosterSeatOption.Value; } set { this.BoosterSeatOption = new Option<bool?>(value); } }
 
         /// <summary>
         /// Returns the string presentation of the object
@@ -91,8 +91,18 @@ namespace Org.OpenAPITools.Model
     /// <summary>
     /// A Json converter for type <see cref="Child" />
     /// </summary>
-    public class ChildJsonConverter : JsonConverter<Child>
+    public partial class ChildJsonConverter : JsonConverter<Child>
     {
+        partial void OnCreated();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChildJsonConverter" /> class.
+        /// </summary>
+        public ChildJsonConverter()
+        {
+            OnCreated();
+        }
+
         /// <summary>
         /// Deserializes json to <see cref="Child" />
         /// </summary>
@@ -111,10 +121,10 @@ namespace Org.OpenAPITools.Model
             JsonTokenType startingTokenType = utf8JsonReader.TokenType;
 
             Option<int?> age = default;
+            Option<bool?> boosterSeat = default;
             Option<string> firstName = default;
             Option<string> lastName = default;
             Option<string> type = default;
-            Option<bool?> boosterSeat = default;
 
             while (utf8JsonReader.Read())
             {
@@ -134,6 +144,9 @@ namespace Org.OpenAPITools.Model
                         case "age":
                             age = new Option<int?>(utf8JsonReader.TokenType == JsonTokenType.Null ? (int?)null : utf8JsonReader.GetInt32());
                             break;
+                        case "boosterSeat":
+                            boosterSeat = new Option<bool?>(utf8JsonReader.TokenType == JsonTokenType.Null ? (bool?)null : utf8JsonReader.GetBoolean());
+                            break;
                         case "firstName":
                             firstName = new Option<string>(utf8JsonReader.GetString());
                             break;
@@ -142,9 +155,6 @@ namespace Org.OpenAPITools.Model
                             break;
                         case "$_type":
                             type = new Option<string>(utf8JsonReader.GetString());
-                            break;
-                        case "boosterSeat":
-                            boosterSeat = new Option<bool?>(utf8JsonReader.TokenType == JsonTokenType.Null ? (bool?)null : utf8JsonReader.GetBoolean());
                             break;
                         default:
                             break;
@@ -155,6 +165,9 @@ namespace Org.OpenAPITools.Model
             if (age.IsSet && age.Value == null)
                 throw new ArgumentNullException(nameof(age), "Property is not nullable for class Child.");
 
+            if (boosterSeat.IsSet && boosterSeat.Value == null)
+                throw new ArgumentNullException(nameof(boosterSeat), "Property is not nullable for class Child.");
+
             if (firstName.IsSet && firstName.Value == null)
                 throw new ArgumentNullException(nameof(firstName), "Property is not nullable for class Child.");
 
@@ -164,10 +177,7 @@ namespace Org.OpenAPITools.Model
             if (type.IsSet && type.Value == null)
                 throw new ArgumentNullException(nameof(type), "Property is not nullable for class Child.");
 
-            if (boosterSeat.IsSet && boosterSeat.Value == null)
-                throw new ArgumentNullException(nameof(boosterSeat), "Property is not nullable for class Child.");
-
-            return new Child(age, firstName, lastName, boosterSeat);
+            return new Child(age, boosterSeat, firstName, lastName);
         }
 
         /// <summary>
@@ -203,6 +213,9 @@ namespace Org.OpenAPITools.Model
             if (child.AgeOption.IsSet)
                 writer.WriteNumber("age", child.AgeOption.Value.Value);
 
+            if (child.BoosterSeatOption.IsSet)
+                writer.WriteBoolean("boosterSeat", child.BoosterSeatOption.Value.Value);
+
             if (child.FirstNameOption.IsSet)
                 writer.WriteString("firstName", child.FirstName);
 
@@ -210,9 +223,6 @@ namespace Org.OpenAPITools.Model
                 writer.WriteString("lastName", child.LastName);
 
             writer.WriteString("$_type", child.Type);
-
-            if (child.BoosterSeatOption.IsSet)
-                writer.WriteBoolean("boosterSeat", child.BoosterSeatOption.Value.Value);
         }
     }
 }

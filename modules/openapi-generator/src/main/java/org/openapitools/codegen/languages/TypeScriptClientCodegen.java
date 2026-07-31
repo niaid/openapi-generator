@@ -57,6 +57,9 @@ import static org.openapitools.codegen.utils.StringUtils.camelize;
 import static org.openapitools.codegen.utils.StringUtils.underscore;
 
 
+/**
+ * <p>Mustache templates are located in {@code src/main/resources/typescript/}.
+ */
 public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen implements CodegenConfig {
     private final Logger LOGGER = LoggerFactory.getLogger(TypeScriptClientCodegen.class);
 
@@ -77,6 +80,12 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
 
     private static final String USE_OBJECT_PARAMS_SWITCH = "useObjectParameters";
     private static final String USE_OBJECT_PARAMS_DESC = "Use aggregate parameter objects as function arguments for api operations instead of passing each parameter as a separate function argument.";
+    private static final String ENUM_TYPE_SWITCH = "enumType";
+    private static final String ENUM_TYPE_SWITCH_DESC = "Specify the enum type which should be used in the client code.";
+    private static final String[][] ENUM_TYPES = {{"stringUnion", "Union of literal string types"}, {"enum", "Typescript's [string enums](https://www.typescriptlang.org/docs/handbook/enums.html#string-enums)"}};
+
+    protected static final String TYPESCRIPT_MAJOR_VERSION_SWTICH = "typescriptMajorVersion";
+    private static final String TYPESCRIPT_MAJOR_VERSION_DESC = "Specify the major version of TypeScript to use in the client code. Default is 5.";
 
     public static final String USE_ERASABLE_SYNTAX = "useErasableSyntax";
     public static final String USE_ERASABLE_SYNTAX_DESC = "Use erasable syntax for the generated code. This is a temporary feature and will be removed in the future.";
@@ -97,8 +106,13 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
     protected String snapshot = null;
     protected ENUM_PROPERTY_NAMING_TYPE enumPropertyNaming = ENUM_PROPERTY_NAMING_TYPE.PascalCase;
 
+    @Getter @Setter
+    protected String typescriptMajorVersion = "5";
+
     private final DateTimeFormatter iso8601Date = DateTimeFormatter.ISO_DATE;
     private final DateTimeFormatter iso8601DateTime = DateTimeFormatter.ISO_DATE_TIME;
+
+    protected String apiDocPath = "docs/";
 
     public TypeScriptClientCodegen() {
         super();
@@ -129,6 +143,7 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
         cliOptions.add(new CliOption(TypeScriptClientCodegen.USE_RXJS_SWITCH, TypeScriptClientCodegen.USE_RXJS_SWITCH_DESC).defaultValue("false"));
         cliOptions.add(new CliOption(TypeScriptClientCodegen.USE_OBJECT_PARAMS_SWITCH, TypeScriptClientCodegen.USE_OBJECT_PARAMS_DESC).defaultValue("false"));
         cliOptions.add(new CliOption(TypeScriptClientCodegen.USE_INVERSIFY_SWITCH, TypeScriptClientCodegen.USE_INVERSIFY_SWITCH_DESC).defaultValue("false"));
+        cliOptions.add(new CliOption(TypeScriptClientCodegen.TYPESCRIPT_MAJOR_VERSION_SWTICH, TypeScriptClientCodegen.TYPESCRIPT_MAJOR_VERSION_DESC).defaultValue(this.getTypescriptMajorVersion()));
         cliOptions.add(new CliOption(TypeScriptClientCodegen.IMPORT_FILE_EXTENSION_SWITCH, TypeScriptClientCodegen.IMPORT_FILE_EXTENSION_SWITCH_DESC));
         cliOptions.add(new CliOption(TypeScriptClientCodegen.USE_ERASABLE_SYNTAX, TypeScriptClientCodegen.USE_ERASABLE_SYNTAX_DESC).defaultValue("false"));
 
@@ -146,6 +161,13 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
         platformOption.defaultValue(PLATFORMS[0]);
 
         cliOptions.add(platformOption);
+
+        CliOption enumTypeOption = new CliOption(TypeScriptClientCodegen.ENUM_TYPE_SWITCH, TypeScriptClientCodegen.ENUM_TYPE_SWITCH_DESC);
+        for (String[] option : TypeScriptClientCodegen.ENUM_TYPES) {
+            enumTypeOption.addEnum(option[0], option[1]);
+        }
+        enumTypeOption.defaultValue(ENUM_TYPES[1][0]);
+        cliOptions.add(enumTypeOption);
 
         // Set property naming to camelCase
         supportModelPropertyNaming(CodegenConstants.MODEL_PROPERTY_NAMING_TYPE.camelCase);
@@ -400,6 +422,11 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
         return objs;
     }
 
+    @Override
+    public String apiDocFileFolder() {
+        return (outputFolder + "/" + apiDocPath).replace('/', File.separatorChar);
+    }
+
     private List<Map<String, String>> toTsImports(CodegenModel cm, Set<String> imports) {
         List<Map<String, String>> tsImports = new ArrayList<>();
         for (String im : imports) {
@@ -432,6 +459,8 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
         apiPackage = this.apiPackage + ".apis";
         testPackage = this.testPackage + ".tests";
 
+        additionalProperties.put("apiDocPath", apiDocPath);
+
         additionalProperties.putIfAbsent(FRAMEWORK_SWITCH, FRAMEWORKS[0]);
         supportingFiles.add(new SupportingFile("index.mustache", "index.ts"));
 
@@ -440,6 +469,15 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
                 "http" + File.separator + httpLibName + ".mustache",
                 "http", httpLibName + ".ts"
         ));
+
+        additionalProperties.putIfAbsent(ENUM_TYPE_SWITCH, ENUM_TYPES[1][0]);
+        Object propEnumType = additionalProperties.get(ENUM_TYPE_SWITCH);
+
+        Map<String, Boolean> enumTypes = new HashMap<>();
+        for (String[] option : ENUM_TYPES) {
+            enumTypes.put(option[0], option[0].equals(propEnumType));
+        }
+        additionalProperties.put("enumTypes", enumTypes);
 
         Object propPlatform = additionalProperties.get(PLATFORM_SWITCH);
         if (propPlatform == null) {
@@ -486,6 +524,8 @@ public class TypeScriptClientCodegen extends AbstractTypeScriptClientCodegen imp
         if (additionalProperties.containsKey(NPM_REPOSITORY)) {
             setNpmRepository(additionalProperties.get(NPM_REPOSITORY).toString());
         }
+
+        additionalProperties.put(TYPESCRIPT_MAJOR_VERSION_SWTICH, typescriptMajorVersion);
     }
 
     private String getHttpLibForFramework(String object) {
