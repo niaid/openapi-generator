@@ -1,0 +1,16 @@
+name: "Monarch CodeQL config"
+
+# Exclude generated / non-product code from CodeQL analysis.
+# These trees contain templates and fully generated sample projects in many
+# languages, which otherwise produce a very large number of alerts against
+# code we do not maintain by hand.
+#
+# Glob rules (per GitHub docs):
+#   - `?`, `+`, `[`, `]`, `!` are matched literally (not supported as metachars)
+#   - `**` may only appear at the start/end of a pattern or surrounded by slashes
+#   - quote any pattern containing `*`
+paths-ignore:
+  # Code generation templates (mustache + supporting source files)
+  - 'modules/openapi-generator/src/main/resources'
+  # Generated sample projects
+  - 'samples'
