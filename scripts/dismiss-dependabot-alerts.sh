@@ -4,17 +4,18 @@
 # Bulk-dismiss Dependabot alerts whose manifest path matches a pattern.
 #
 # Why this exists:
-#   This repo contains large amounts of *generated* code under samples/ and a
-#   vendored website/ tree. Dependabot raises an alert for every vulnerable
-#   dependency in every manifest/lockfile it finds there, which can add up to
-#   thousands of alerts against code that is never shipped. GitHub's Dependabot
-#   auto-triage rules match a single manifest file each (and are capped at 10
-#   per repo), so they cannot exclude a whole subtree. This script dismisses
-#   those alerts in bulk via the REST API instead.
+#   This repo contains large amounts of *generated* code under samples/.
+#   Dependabot raises an alert for every vulnerable dependency in every
+#   manifest/lockfile it finds there, which can add up to thousands of alerts
+#   against code that is never shipped. GitHub's Dependabot auto-triage rules
+#   match a single manifest file each (and are capped at 10 per repo), so they
+#   cannot exclude a whole subtree. This script dismisses those alerts in bulk
+#   via the REST API instead.
 #
 # What it does NOT touch:
 #   Alerts whose manifest path does not match --path-regex (by default, anything
-#   outside samples/ and website/, e.g. the product code under modules/).
+#   outside samples/, e.g. the vendored website/ tree or the product code under
+#   modules/).
 #
 # Requirements:
 #   - gh (GitHub CLI) authenticated with a token that has security_events write
@@ -27,7 +28,7 @@
 # Options:
 #   -r, --repo REPO         owner/name (default: derived from `gh repo view`)
 #   -p, --path-regex REGEX  Ruby/jq-style regex matched against manifest_path
-#                           (default: '^(samples|website)/')
+#                           (default: '^samples/')
 #   -R, --reason REASON     Dismissal reason. One of:
 #                           fix_started | inaccurate | no_bandwidth |
 #                           not_used | tolerable_risk   (default: not_used)
@@ -39,7 +40,7 @@
 #   # Preview what would be dismissed:
 #   scripts/dismiss-dependabot-alerts.sh --dry-run
 #
-#   # Dismiss all open samples/ + website/ alerts:
+#   # Dismiss all open samples/ alerts:
 #   scripts/dismiss-dependabot-alerts.sh
 #
 #   # Dismiss only a specific subtree with a custom reason:
@@ -52,9 +53,9 @@
 set -euo pipefail
 
 REPO=""
-PATH_REGEX='^(samples|website)/'
+PATH_REGEX='^samples/'
 REASON="not_used"
-COMMENT="Generated sample/website code, not shipped product; excluded from triage."
+COMMENT="Generated sample code, not shipped product; excluded from triage."
 DRY_RUN=0
 
 usage() {
@@ -67,7 +68,7 @@ Usage:
 Options:
   -r, --repo REPO         owner/name (default: derived from the 'origin' remote)
   -p, --path-regex REGEX  regex matched against manifest_path
-                          (default: '^(samples|website)/')
+                          (default: '^samples/')
   -R, --reason REASON     fix_started | inaccurate | no_bandwidth |
                           not_used | tolerable_risk        (default: not_used)
   -c, --comment TEXT      dismissal comment stored on each alert
