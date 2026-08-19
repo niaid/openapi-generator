@@ -3,14 +3,15 @@
 
 use async_trait::async_trait;
 use futures::Stream;
+#[cfg(feature = "mock")]
+use mockall::automock;
 use std::error::Error;
 use std::collections::BTreeSet;
 use std::task::{Poll, Context};
-use swagger::{ApiError, ContextWrapper};
+use swagger::{ApiError, ContextWrapper, auth::Authorization};
 use serde::{Serialize, Deserialize};
-use crate::server::Authorization;
 
-
+#[cfg(any(feature = "client", feature = "server"))]
 type ServiceError = Box<dyn Error + Send + Sync + 'static>;
 
 pub const BASE_PATH: &str = "";
@@ -125,6 +126,18 @@ pub enum MultipleAuthSchemeGetResponse {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[must_use]
+pub enum MultipleResponseContentTypesResponse {
+    /// Created
+    Created
+    (models::AnyOfObject)
+    ,
+    /// Forbidden
+    Forbidden
+    (swagger::OneOf2::<String, models::AnyOfObject>)
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum OneOfGetResponse {
     /// Success
     Success
@@ -145,6 +158,12 @@ pub enum ParamgetGetResponse {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum QueryExampleGetResponse {
+    /// OK
+    OK
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum ReadonlyAuthSchemeGetResponse {
     /// Check that limiting to a single required auth scheme works
     CheckThatLimitingToASingleRequiredAuthSchemeWorks
@@ -152,6 +171,12 @@ pub enum ReadonlyAuthSchemeGetResponse {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum RegisterCallbackPostResponse {
+    /// OK
+    OK
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum RequiredBinaryStreamPutResponse {
     /// OK
     OK
 }
@@ -310,12 +335,13 @@ pub enum GetRepoInfoResponse {
 }
 
 /// API
+#[cfg_attr(feature = "mock", automock)]
 #[async_trait]
 #[allow(clippy::too_many_arguments, clippy::ptr_arg)]
 pub trait Api<C: Send + Sync> {
-    async fn any_of_get(
+    async fn any_of_get<'a>(
         &self,
-        any_of: Option<&Vec<models::AnyOfObject>>,
+        any_of: Option<&'a Vec<models::AnyOfObject>>,
         context: &C) -> Result<AnyOfGetResponse, ApiError>;
 
     async fn callback_with_header_post(
@@ -323,21 +349,22 @@ pub trait Api<C: Send + Sync> {
         url: String,
         context: &C) -> Result<CallbackWithHeaderPostResponse, ApiError>;
 
-    async fn complex_query_param_get(
+    async fn complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         context: &C) -> Result<ComplexQueryParamGetResponse, ApiError>;
 
     /// Test examples
-    async fn examples_test(
+    async fn examples_test<'a>(
         &self,
-        ids: Option<&Vec<String>>,
+        ids: Option<&'a Vec<String>>,
         context: &C) -> Result<ExamplesTestResponse, ApiError>;
 
     /// Test a Form Post
-    async fn form_test(
+    async fn form_test<'a>(
         &self,
-        required_array: Option<&Vec<String>>,
+        required_array: &'a Vec<String>,
+        enum_field: models::FormTestRequestEnumField,
         context: &C) -> Result<FormTestResponse, ApiError>;
 
     async fn get_with_boolean_parameter(
@@ -345,9 +372,9 @@ pub trait Api<C: Send + Sync> {
         iambool: bool,
         context: &C) -> Result<GetWithBooleanParameterResponse, ApiError>;
 
-    async fn json_complex_query_param_get(
+    async fn json_complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         context: &C) -> Result<JsonComplexQueryParamGetResponse, ApiError>;
 
     async fn mandatory_request_header_get(
@@ -368,6 +395,12 @@ pub trait Api<C: Send + Sync> {
         &self,
         context: &C) -> Result<MultipleAuthSchemeGetResponse, ApiError>;
 
+    /// Test multiple content types in a single response
+    async fn multiple_response_content_types(
+        &self,
+        object_param: models::ObjectParam,
+        context: &C) -> Result<MultipleResponseContentTypesResponse, ApiError>;
+
     async fn one_of_get(
         &self,
         context: &C) -> Result<OneOfGetResponse, ApiError>;
@@ -384,6 +417,13 @@ pub trait Api<C: Send + Sync> {
         some_list: Option<models::MyIdList>,
         context: &C) -> Result<ParamgetGetResponse, ApiError>;
 
+    /// Test required query params with and without examples
+    async fn query_example_get(
+        &self,
+        required_no_example: String,
+        required_with_example: i32,
+        context: &C) -> Result<QueryExampleGetResponse, ApiError>;
+
     async fn readonly_auth_scheme_get(
         &self,
         context: &C) -> Result<ReadonlyAuthSchemeGetResponse, ApiError>;
@@ -392,6 +432,11 @@ pub trait Api<C: Send + Sync> {
         &self,
         url: String,
         context: &C) -> Result<RegisterCallbackPostResponse, ApiError>;
+
+    async fn required_binary_stream_put(
+        &self,
+        body: swagger::ByteArray,
+        context: &C) -> Result<RequiredBinaryStreamPutResponse, ApiError>;
 
     async fn required_octet_stream_put(
         &self,
@@ -471,15 +516,20 @@ pub trait Api<C: Send + Sync> {
 }
 
 /// API where `Context` isn't passed on every API call
+#[cfg_attr(feature = "mock", automock)]
 #[async_trait]
 #[allow(clippy::too_many_arguments, clippy::ptr_arg)]
 pub trait ApiNoContext<C: Send + Sync> {
+    // The std::task::Context struct houses a reference to std::task::Waker with the lifetime <'a>.
+    // Adding an anonymous lifetime `'a` to allow mockall to create a mock object with the right lifetimes.
+    // This is needed because the compiler is unable to determine the lifetimes on F's trait bound
+    // where F is the closure created by mockall. We use higher-rank trait bounds here to get around this.
 
     fn context(&self) -> &C;
 
-    async fn any_of_get(
+    async fn any_of_get<'a>(
         &self,
-        any_of: Option<&Vec<models::AnyOfObject>>,
+        any_of: Option<&'a Vec<models::AnyOfObject>>,
         ) -> Result<AnyOfGetResponse, ApiError>;
 
     async fn callback_with_header_post(
@@ -487,21 +537,22 @@ pub trait ApiNoContext<C: Send + Sync> {
         url: String,
         ) -> Result<CallbackWithHeaderPostResponse, ApiError>;
 
-    async fn complex_query_param_get(
+    async fn complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         ) -> Result<ComplexQueryParamGetResponse, ApiError>;
 
     /// Test examples
-    async fn examples_test(
+    async fn examples_test<'a>(
         &self,
-        ids: Option<&Vec<String>>,
+        ids: Option<&'a Vec<String>>,
         ) -> Result<ExamplesTestResponse, ApiError>;
 
     /// Test a Form Post
-    async fn form_test(
+    async fn form_test<'a>(
         &self,
-        required_array: Option<&Vec<String>>,
+        required_array: &'a Vec<String>,
+        enum_field: models::FormTestRequestEnumField,
         ) -> Result<FormTestResponse, ApiError>;
 
     async fn get_with_boolean_parameter(
@@ -509,9 +560,9 @@ pub trait ApiNoContext<C: Send + Sync> {
         iambool: bool,
         ) -> Result<GetWithBooleanParameterResponse, ApiError>;
 
-    async fn json_complex_query_param_get(
+    async fn json_complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         ) -> Result<JsonComplexQueryParamGetResponse, ApiError>;
 
     async fn mandatory_request_header_get(
@@ -532,6 +583,12 @@ pub trait ApiNoContext<C: Send + Sync> {
         &self,
         ) -> Result<MultipleAuthSchemeGetResponse, ApiError>;
 
+    /// Test multiple content types in a single response
+    async fn multiple_response_content_types(
+        &self,
+        object_param: models::ObjectParam,
+        ) -> Result<MultipleResponseContentTypesResponse, ApiError>;
+
     async fn one_of_get(
         &self,
         ) -> Result<OneOfGetResponse, ApiError>;
@@ -548,6 +605,13 @@ pub trait ApiNoContext<C: Send + Sync> {
         some_list: Option<models::MyIdList>,
         ) -> Result<ParamgetGetResponse, ApiError>;
 
+    /// Test required query params with and without examples
+    async fn query_example_get(
+        &self,
+        required_no_example: String,
+        required_with_example: i32,
+        ) -> Result<QueryExampleGetResponse, ApiError>;
+
     async fn readonly_auth_scheme_get(
         &self,
         ) -> Result<ReadonlyAuthSchemeGetResponse, ApiError>;
@@ -556,6 +620,11 @@ pub trait ApiNoContext<C: Send + Sync> {
         &self,
         url: String,
         ) -> Result<RegisterCallbackPostResponse, ApiError>;
+
+    async fn required_binary_stream_put(
+        &self,
+        body: swagger::ByteArray,
+        ) -> Result<RequiredBinaryStreamPutResponse, ApiError>;
 
     async fn required_octet_stream_put(
         &self,
@@ -653,9 +722,9 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
         ContextWrapper::context(self)
     }
 
-    async fn any_of_get(
+    async fn any_of_get<'a>(
         &self,
-        any_of: Option<&Vec<models::AnyOfObject>>,
+        any_of: Option<&'a Vec<models::AnyOfObject>>,
         ) -> Result<AnyOfGetResponse, ApiError>
     {
         let context = self.context().clone();
@@ -671,9 +740,9 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
         self.api().callback_with_header_post(url, &context).await
     }
 
-    async fn complex_query_param_get(
+    async fn complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         ) -> Result<ComplexQueryParamGetResponse, ApiError>
     {
         let context = self.context().clone();
@@ -681,9 +750,9 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
     }
 
     /// Test examples
-    async fn examples_test(
+    async fn examples_test<'a>(
         &self,
-        ids: Option<&Vec<String>>,
+        ids: Option<&'a Vec<String>>,
         ) -> Result<ExamplesTestResponse, ApiError>
     {
         let context = self.context().clone();
@@ -691,13 +760,14 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
     }
 
     /// Test a Form Post
-    async fn form_test(
+    async fn form_test<'a>(
         &self,
-        required_array: Option<&Vec<String>>,
+        required_array: &'a Vec<String>,
+        enum_field: models::FormTestRequestEnumField,
         ) -> Result<FormTestResponse, ApiError>
     {
         let context = self.context().clone();
-        self.api().form_test(required_array, &context).await
+        self.api().form_test(required_array, enum_field, &context).await
     }
 
     async fn get_with_boolean_parameter(
@@ -709,9 +779,9 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
         self.api().get_with_boolean_parameter(iambool, &context).await
     }
 
-    async fn json_complex_query_param_get(
+    async fn json_complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         ) -> Result<JsonComplexQueryParamGetResponse, ApiError>
     {
         let context = self.context().clone();
@@ -752,6 +822,16 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
         self.api().multiple_auth_scheme_get(&context).await
     }
 
+    /// Test multiple content types in a single response
+    async fn multiple_response_content_types(
+        &self,
+        object_param: models::ObjectParam,
+        ) -> Result<MultipleResponseContentTypesResponse, ApiError>
+    {
+        let context = self.context().clone();
+        self.api().multiple_response_content_types(object_param, &context).await
+    }
+
     async fn one_of_get(
         &self,
         ) -> Result<OneOfGetResponse, ApiError>
@@ -780,6 +860,17 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
         self.api().paramget_get(uuid, some_object, some_list, &context).await
     }
 
+    /// Test required query params with and without examples
+    async fn query_example_get(
+        &self,
+        required_no_example: String,
+        required_with_example: i32,
+        ) -> Result<QueryExampleGetResponse, ApiError>
+    {
+        let context = self.context().clone();
+        self.api().query_example_get(required_no_example, required_with_example, &context).await
+    }
+
     async fn readonly_auth_scheme_get(
         &self,
         ) -> Result<ReadonlyAuthSchemeGetResponse, ApiError>
@@ -795,6 +886,15 @@ impl<T: Api<C> + Send + Sync, C: Clone + Send + Sync> ApiNoContext<C> for Contex
     {
         let context = self.context().clone();
         self.api().register_callback_post(url, &context).await
+    }
+
+    async fn required_binary_stream_put(
+        &self,
+        body: swagger::ByteArray,
+        ) -> Result<RequiredBinaryStreamPutResponse, ApiError>
+    {
+        let context = self.context().clone();
+        self.api().required_binary_stream_put(body, &context).await
     }
 
     async fn required_octet_stream_put(
@@ -949,6 +1049,7 @@ pub enum CallbackCallbackPostResponse {
 
 
 /// Callback API
+#[cfg_attr(feature = "mock", automock)]
 #[async_trait]
 pub trait CallbackApi<C: Send + Sync> {
 
@@ -966,6 +1067,7 @@ pub trait CallbackApi<C: Send + Sync> {
 }
 
 /// Callback API without a `Context`
+#[cfg_attr(feature = "mock", automock)]
 #[async_trait]
 pub trait CallbackApiNoContext<C: Send + Sync> {
 

@@ -37,6 +37,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.openapitools.codegen.CodegenConstants.X_CSHARP_VALUE_TYPE;
 import static org.openapitools.codegen.utils.CamelizeOption.LOWERCASE_FIRST_LETTER;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 import static org.openapitools.codegen.utils.StringUtils.underscore;
@@ -350,7 +351,7 @@ public class CSharpReducedClientCodegen extends AbstractCSharpCodegen {
         super.patchProperty(enumRefs, model, property);
 
         if (!property.isContainer && (this.getNullableTypes().contains(property.dataType) || property.isEnum)) {
-            property.vendorExtensions.put("x-csharp-value-type", true);
+            property.vendorExtensions.put(X_CSHARP_VALUE_TYPE, true);
         }
     }
 
@@ -358,7 +359,7 @@ public class CSharpReducedClientCodegen extends AbstractCSharpCodegen {
     protected void updateCodegenParameterEnum(CodegenParameter parameter, CodegenModel model) {
         super.updateCodegenParameterEnumLegacy(parameter, model);
 
-        if (!parameter.required && parameter.vendorExtensions.get("x-csharp-value-type") != null) { //optional
+        if (!parameter.required && parameter.vendorExtensions.get(X_CSHARP_VALUE_TYPE) != null) { //optional
             parameter.dataType = parameter.dataType + "?";
         }
     }
@@ -380,7 +381,7 @@ public class CSharpReducedClientCodegen extends AbstractCSharpCodegen {
         if (allDefinitions != null && codegenModel != null && codegenModel.parent != null) {
             final Schema parentModel = allDefinitions.get(toModelName(codegenModel.parent));
             if (parentModel != null) {
-                final CodegenModel parentCodegenModel = super.fromModel(codegenModel.parent, parentModel);
+                final CodegenModel parentCodegenModel = getCodegenModel(codegenModel.parent, parentModel);
                 if (codegenModel.hasEnums) {
                     codegenModel = this.reconcileInlineEnums(codegenModel, parentCodegenModel);
                 }
@@ -1098,14 +1099,16 @@ public class CSharpReducedClientCodegen extends AbstractCSharpCodegen {
 
     @Override
     public void postProcess() {
-        System.out.println("################################################################################");
-        System.out.println("# Thanks for using OpenAPI Generator.                                          #");
-        System.out.println("# Please consider donation to help us maintain this project \uD83D\uDE4F                 #");
-        System.out.println("# https://opencollective.com/openapi_generator/donate                          #");
-        System.out.println("#                                                                              #");
-        System.out.println("# This generator's contributed by Jim Schubert (https://github.com/jimschubert)#");
-        System.out.println("# Please support his work directly via https://patreon.com/jimschubert \uD83D\uDE4F      #");
-        System.out.println("################################################################################");
+        if (!isQuietMode()) {
+            System.out.println("################################################################################");
+            System.out.println("# Thanks for using OpenAPI Generator.                                          #");
+            System.out.println("# Please consider donation to help us maintain this project \uD83D\uDE4F                 #");
+            System.out.println("# https://opencollective.com/openapi_generator/donate                          #");
+            System.out.println("#                                                                              #");
+            System.out.println("# This generator's contributed by Jim Schubert (https://github.com/jimschubert)#");
+            System.out.println("# Please support his work directly via https://patreon.com/jimschubert \uD83D\uDE4F      #");
+            System.out.println("################################################################################");
+        }
     }
 
     @Override

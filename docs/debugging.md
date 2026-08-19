@@ -5,7 +5,7 @@ title: Debugging
 
 ## Generation
 
-As a user there may be times when generated outputs don't match your expectations it's unclear why. The CLI supports a `--dry-run` option which may be used to inspect the anticipated file operations without making changes to the file system.
+As a user there may be times when generated outputs don't match your expectations and it's unclear why. The CLI supports a `--dry-run` option which may be used to inspect the anticipated file operations without making changes to the file system.
 
 Suppose you generate using the `--minimal-update` option, and you notice on subsequent generations of a client that no files have changed. This is by design.
 
@@ -216,7 +216,7 @@ The steps are shown here for a specific version of the generator, but apply the 
         ]
     }
     ```
-    to attach the the suspended process above.
+    to attach the suspended process above.
 
 ## Logs
 

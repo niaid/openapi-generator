@@ -1,16 +1,24 @@
 use std::collections::HashMap;
 
 use axum::{body::Body, extract::*, response::Response, routing::*};
-use axum_extra::extract::{CookieJar, Host, Query as QueryExtra};
+use axum_extra::{
+    TypedHeader,
+    extract::{CookieJar, Query as QueryExtra},
+};
 use bytes::Bytes;
+use headers::Host;
 use http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, header::CONTENT_TYPE};
 use tracing::error;
 use validator::{Validate, ValidationErrors};
 
-use crate::{header, types::*};
-
 #[allow(unused_imports)]
 use crate::{apis, models};
+use crate::{header, types::*};
+#[allow(unused_imports)]
+use crate::{
+    models::check_xss_map, models::check_xss_map_nested, models::check_xss_map_string,
+    models::check_xss_string, models::check_xss_vec_string,
+};
 
 /// Setup API Server.
 pub fn new<I, A, E, C>(api_impl: I) -> Router
@@ -55,7 +63,7 @@ fn get_payment_method_by_id_validation(
 #[tracing::instrument(skip_all)]
 async fn get_payment_method_by_id<I, A, E, C>(
     method: Method,
-    host: Host,
+    TypedHeader(host): TypedHeader<Host>,
     cookies: CookieJar,
     headers: HeaderMap,
     Path(path_params): Path<models::GetPaymentMethodByIdPathParams>,
@@ -119,11 +127,10 @@ where
         .get_payment_method_by_id(&mut event, method, host, cookies, claims, path_params)
         .await;
 
-    let mut response = Response::builder();
-
     let resp = match result {
         Ok(rsp) => match rsp {
             apis::payments::GetPaymentMethodByIdResponse::Status200_OK(body) => {
+                let mut response = Response::builder();
                 let mut response = response.status(200);
                 {
                     let mut response_headers = response.headers_mut().unwrap();
@@ -142,6 +149,7 @@ where
                 response.body(Body::from(body_content))
             }
             apis::payments::GetPaymentMethodByIdResponse::Status422_UnprocessableEntity(body) => {
+                let mut response = Response::builder();
                 let mut response = response.status(422);
                 {
                     let mut response_headers = response.headers_mut().unwrap();
@@ -210,7 +218,7 @@ fn get_payment_methods_validation() -> std::result::Result<(), ValidationErrors>
 #[tracing::instrument(skip_all)]
 async fn get_payment_methods<I, A, E, C>(
     method: Method,
-    host: Host,
+    TypedHeader(host): TypedHeader<Host>,
     cookies: CookieJar,
     headers: HeaderMap,
     State(api_impl): State<I>,
@@ -272,11 +280,10 @@ where
         .get_payment_methods(&mut event, method, host, cookies, claims)
         .await;
 
-    let mut response = Response::builder();
-
     let resp = match result {
         Ok(rsp) => match rsp {
             apis::payments::GetPaymentMethodsResponse::Status200_OK(body) => {
+                let mut response = Response::builder();
                 let mut response = response.status(200);
                 {
                     let mut response_headers = response.headers_mut().unwrap();
@@ -359,7 +366,7 @@ fn post_make_payment_validation(
 #[tracing::instrument(skip_all)]
 async fn post_make_payment<I, A, E, C>(
     method: Method,
-    host: Host,
+    TypedHeader(host): TypedHeader<Host>,
     cookies: CookieJar,
     headers: HeaderMap,
     State(api_impl): State<I>,
@@ -427,11 +434,10 @@ where
         .post_make_payment(&mut event, method, host, cookies, claims, body)
         .await;
 
-    let mut response = Response::builder();
-
     let resp = match result {
         Ok(rsp) => match rsp {
             apis::payments::PostMakePaymentResponse::Status200_OK(body) => {
+                let mut response = Response::builder();
                 let mut response = response.status(200);
                 {
                     let mut response_headers = response.headers_mut().unwrap();
@@ -450,6 +456,7 @@ where
                 response.body(Body::from(body_content))
             }
             apis::payments::PostMakePaymentResponse::Status422_UnprocessableEntity(body) => {
+                let mut response = Response::builder();
                 let mut response = response.status(422);
                 {
                     let mut response_headers = response.headers_mut().unwrap();

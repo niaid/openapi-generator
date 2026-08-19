@@ -25,6 +25,7 @@ export class Pet {
     'tags'?: Array<Tag>;
     /**
     * pet status in the store
+    * @deprecated
     */
     'status'?: PetStatusEnum;
 
@@ -78,9 +79,5 @@ export class Pet {
     }
 }
 
-export enum PetStatusEnum {
-    Available = 'available',
-    Pending = 'pending',
-    Sold = 'sold'
-}
+    export type PetStatusEnum = "available" | "pending" | "sold" ;
 

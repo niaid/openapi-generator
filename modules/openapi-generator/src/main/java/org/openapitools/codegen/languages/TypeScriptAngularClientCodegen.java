@@ -45,6 +45,9 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.openapitools.codegen.utils.CamelizeOption.LOWERCASE_FIRST_LETTER;
 import static org.openapitools.codegen.utils.StringUtils.*;
 
+/**
+ * <p>Mustache templates are located in {@code src/main/resources/typescript-angular/}.
+ */
 public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCodegen {
     private final Logger LOGGER = LoggerFactory.getLogger(TypeScriptAngularClientCodegen.class);
 
@@ -85,7 +88,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
     public static final String ZONEJS_VERSION = "zonejsVersion";
     public static final String HTTP_OPTIONS_NAME = "httpOptionsName";
 
-    protected String ngVersion = "20.0.0";
+    protected String ngVersion = "21.0.0";
     @Getter @Setter
     protected String npmRepository = null;
     @Setter(AccessLevel.PRIVATE) private boolean useSingleRequestParameter = false;
@@ -173,7 +176,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
 
     @Override
     public String getHelp() {
-        return "Generates a TypeScript Angular (9.x - 20.x) client library.";
+        return "Generates a TypeScript Angular (9.x - 21.x) client library.";
     }
 
     @Override
@@ -207,6 +210,7 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
         supportingFiles.add(new SupportingFile("param.mustache", getIndexDirectory(), "param.ts"));
         supportingFiles.add(new SupportingFile("gitignore", "", ".gitignore"));
         supportingFiles.add(new SupportingFile("git_push.sh.mustache", "", "git_push.sh"));
+        supportingFiles.add(new SupportingFile("queryParams.mustache", getIndexDirectory(), "query.params.ts"));
 
         if(ngVersionAtLeast_17) {
             supportingFiles.add(new SupportingFile("README.mustache", getIndexDirectory(), "README.md"));
@@ -469,6 +473,9 @@ public class TypeScriptAngularClientCodegen extends AbstractTypeScriptClientCode
                         break;
                 }
             }
+
+            // backup path in extensions
+            op.vendorExtensions.put("x-path-from-spec", op.path);
 
             // Overwrite path to TypeScript template string, after applying everything we just did.
             op.path = pathBuffer.toString();

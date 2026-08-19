@@ -51,7 +51,9 @@ import 'package:openapi/src/model/number_only.dart';
 import 'package:openapi/src/model/object_that_references_objects_with_duplicate_inline_enums.dart';
 import 'package:openapi/src/model/object_with_deprecated_fields.dart';
 import 'package:openapi/src/model/object_with_duplicate_inline_enum.dart';
+import 'package:openapi/src/model/object_with_enum.dart';
 import 'package:openapi/src/model/object_with_inline_enum.dart';
+import 'package:openapi/src/model/object_with_inline_enum_default_value.dart';
 import 'package:openapi/src/model/order.dart';
 import 'package:openapi/src/model/outer_composite.dart';
 import 'package:openapi/src/model/outer_enum.dart';
@@ -67,7 +69,6 @@ import 'package:openapi/src/model/special_model_name.dart';
 import 'package:openapi/src/model/tag.dart';
 import 'package:openapi/src/model/test_enum.dart';
 import 'package:openapi/src/model/test_inline_freeform_additional_properties_request.dart';
-import 'package:openapi/src/model/test_item.dart';
 import 'package:openapi/src/model/user.dart';
 
 part 'serializers.g.dart';
@@ -110,7 +111,9 @@ part 'serializers.g.dart';
   ObjectThatReferencesObjectsWithDuplicateInlineEnums,
   ObjectWithDeprecatedFields,
   ObjectWithDuplicateInlineEnum,
+  ObjectWithEnum,
   ObjectWithInlineEnum,
+  ObjectWithInlineEnumDefaultValue,
   Order,
   OuterComposite,
   OuterEnum,
@@ -126,13 +129,48 @@ part 'serializers.g.dart';
   Tag,
   TestEnum,
   TestInlineFreeformAdditionalPropertiesRequest,
-  TestItem,
   User,
 ])
 Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(String)]),
         () => MapBuilder<String, String>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(BuiltList, [FullType(int)])]),
+        () => ListBuilder<BuiltList<int>>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(num)]),
+        () => MapBuilder<String, num>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(Animal)]),
+        () => MapBuilder<String, Animal>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ReadOnlyFirst)]),
+        () => ListBuilder<ReadOnlyFirst>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(BuiltList, [FullType(ReadOnlyFirst)])]),
+        () => ListBuilder<BuiltList<ReadOnlyFirst>>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(BuiltMap, [FullType(String), FullType(String)])]),
+        () => MapBuilder<String, BuiltMap<String, String>>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(int)]),
+        () => MapBuilder<String, int>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(BuiltList, [FullType(num)])]),
+        () => ListBuilder<BuiltList<num>>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(num)]),
+        () => ListBuilder<num>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(User)]),
@@ -143,6 +181,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => SetBuilder<String>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(BuiltList, [FullType(int)])]),
+        () => MapBuilder<String, BuiltList<int>>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltSet, [FullType(Pet)]),
         () => SetBuilder<Pet>(),
       )
@@ -151,20 +193,44 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<Pet>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
-        () => MapBuilder<String, JsonObject>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltMap, [FullType(String), FullType(int)]),
-        () => MapBuilder<String, int>(),
+        const FullType(BuiltList, [FullType(JsonObject)]),
+        () => ListBuilder<JsonObject>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ModelEnumClass)]),
         () => ListBuilder<ModelEnumClass>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType.nullable(JsonObject)]),
+        () => ListBuilder<JsonObject>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(Tag)]),
+        () => ListBuilder<Tag>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ModelFile)]),
+        () => ListBuilder<ModelFile>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(int)]),
+        () => ListBuilder<int>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+        () => MapBuilder<String, JsonObject?>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(bool)]),
+        () => MapBuilder<String, bool>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(String)]),
         () => ListBuilder<String>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType(JsonObject)]),
+        () => MapBuilder<String, JsonObject>(),
       )
       ..add(Animal.serializer)
       ..add(ParentWithNullable.serializer)

@@ -76,8 +76,6 @@ pub async fn create(addr: &str, https: bool) {
         }
     } else {
         info!("Starting a server (over http, so no TLS)");
-        // Using HTTP
-        let listener = TcpListener::bind(&addr).await.unwrap();
         println!("Listening on http://{}", addr);
 
         loop {
@@ -150,11 +148,14 @@ use openapi_v3::{
     MergePatchJsonGetResponse,
     MultigetGetResponse,
     MultipleAuthSchemeGetResponse,
+    MultipleResponseContentTypesResponse,
     OneOfGetResponse,
     OverrideServerGetResponse,
     ParamgetGetResponse,
+    QueryExampleGetResponse,
     ReadonlyAuthSchemeGetResponse,
     RegisterCallbackPostResponse,
+    RequiredBinaryStreamPutResponse,
     RequiredOctetStreamPutResponse,
     ResponsesWithHeadersGetResponse,
     Rfc7807GetResponse,
@@ -178,9 +179,9 @@ use swagger::ApiError;
 #[async_trait]
 impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
 {
-    async fn any_of_get(
+    async fn any_of_get<'a>(
         &self,
-        any_of: Option<&Vec<models::AnyOfObject>>,
+        any_of: Option<&'a Vec<models::AnyOfObject>>,
         context: &C) -> Result<AnyOfGetResponse, ApiError>
     {
         info!("any_of_get({:?}) - X-Span-ID: {:?}", any_of, context.get().0.clone());
@@ -196,9 +197,9 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
-    async fn complex_query_param_get(
+    async fn complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         context: &C) -> Result<ComplexQueryParamGetResponse, ApiError>
     {
         info!("complex_query_param_get({:?}) - X-Span-ID: {:?}", list_of_strings, context.get().0.clone());
@@ -206,9 +207,9 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
     }
 
     /// Test examples
-    async fn examples_test(
+    async fn examples_test<'a>(
         &self,
-        ids: Option<&Vec<String>>,
+        ids: Option<&'a Vec<String>>,
         context: &C) -> Result<ExamplesTestResponse, ApiError>
     {
         info!("examples_test({:?}) - X-Span-ID: {:?}", ids, context.get().0.clone());
@@ -216,12 +217,13 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
     }
 
     /// Test a Form Post
-    async fn form_test(
+    async fn form_test<'a>(
         &self,
-        required_array: Option<&Vec<String>>,
+        required_array: &'a Vec<String>,
+        enum_field: models::FormTestRequestEnumField,
         context: &C) -> Result<FormTestResponse, ApiError>
     {
-        info!("form_test({:?}) - X-Span-ID: {:?}", required_array, context.get().0.clone());
+        info!("form_test({:?}, {:?}) - X-Span-ID: {:?}", required_array, enum_field, context.get().0.clone());
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
@@ -234,9 +236,9 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
-    async fn json_complex_query_param_get(
+    async fn json_complex_query_param_get<'a>(
         &self,
-        list_of_strings: Option<&Vec<models::StringObject>>,
+        list_of_strings: Option<&'a Vec<models::StringObject>>,
         context: &C) -> Result<JsonComplexQueryParamGetResponse, ApiError>
     {
         info!("json_complex_query_param_get({:?}) - X-Span-ID: {:?}", list_of_strings, context.get().0.clone());
@@ -277,6 +279,16 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
+    /// Test multiple content types in a single response
+    async fn multiple_response_content_types(
+        &self,
+        object_param: models::ObjectParam,
+        context: &C) -> Result<MultipleResponseContentTypesResponse, ApiError>
+    {
+        info!("multiple_response_content_types({:?}) - X-Span-ID: {:?}", object_param, context.get().0.clone());
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
+    }
+
     async fn one_of_get(
         &self,
         context: &C) -> Result<OneOfGetResponse, ApiError>
@@ -305,6 +317,17 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 
+    /// Test required query params with and without examples
+    async fn query_example_get(
+        &self,
+        required_no_example: String,
+        required_with_example: i32,
+        context: &C) -> Result<QueryExampleGetResponse, ApiError>
+    {
+        info!("query_example_get(\"{}\", {}) - X-Span-ID: {:?}", required_no_example, required_with_example, context.get().0.clone());
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
+    }
+
     async fn readonly_auth_scheme_get(
         &self,
         context: &C) -> Result<ReadonlyAuthSchemeGetResponse, ApiError>
@@ -319,6 +342,15 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         context: &C) -> Result<RegisterCallbackPostResponse, ApiError>
     {
         info!("register_callback_post(\"{}\") - X-Span-ID: {:?}", url, context.get().0.clone());
+        Err(ApiError("Api-Error: Operation is NOT implemented".into()))
+    }
+
+    async fn required_binary_stream_put(
+        &self,
+        body: swagger::ByteArray,
+        context: &C) -> Result<RequiredBinaryStreamPutResponse, ApiError>
+    {
+        info!("required_binary_stream_put({:?}) - X-Span-ID: {:?}", body, context.get().0.clone());
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 

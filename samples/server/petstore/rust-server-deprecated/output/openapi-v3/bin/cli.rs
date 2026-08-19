@@ -19,8 +19,10 @@ use openapi_v3::{
     OneOfGetResponse,
     OverrideServerGetResponse,
     ParamgetGetResponse,
+    QueryExampleGetResponse,
     ReadonlyAuthSchemeGetResponse,
     RegisterCallbackPostResponse,
+    RequiredBinaryStreamPutResponse,
     RequiredOctetStreamPutResponse,
     ResponsesWithHeadersGetResponse,
     Rfc7807GetResponse,
@@ -112,7 +114,9 @@ enum Operation {
     /// Test a Form Post
     FormTest {
         #[structopt(parse(try_from_str = parse_json), long)]
-        required_array: Option<Vec<String>>,
+        required_array: Vec<String>,
+        #[structopt(parse(try_from_str = parse_json))]
+        enum_field: models::FormTestRequestEnumField,
     },
     GetWithBooleanParameter {
         /// Let's check apostrophes get encoded properly!
@@ -149,10 +153,19 @@ enum Operation {
         #[structopt(parse(try_from_str = parse_json), long)]
         some_list: Option<Vec<models::MyId>>,
     },
+    /// Test required query params with and without examples
+    QueryExampleGet {
+        required_no_example: String,
+        required_with_example: i32,
+    },
     ReadonlyAuthSchemeGet {
     },
     RegisterCallbackPost {
         url: String,
+    },
+    RequiredBinaryStreamPut {
+        #[structopt(parse(try_from_str = parse_json))]
+        body: swagger::ByteArray,
     },
     RequiredOctetStreamPut {
         #[structopt(parse(try_from_str = parse_json))]
@@ -352,11 +365,13 @@ async fn main() -> Result<()> {
         }
         Operation::FormTest {
             required_array,
+            enum_field,
         } => {
             info!("Performing a FormTest request");
 
             let result = client.form_test(
                 required_array.as_ref(),
+                enum_field,
             ).await?;
             debug!("Result: {:?}", result);
 
@@ -542,6 +557,24 @@ async fn main() -> Result<()> {
                     &serde_json::to_string_pretty(&body)?,
             }
         }
+        Operation::QueryExampleGet {
+            required_no_example,
+            required_with_example,
+        } => {
+            info!("Performing a QueryExampleGet request");
+
+            let result = client.query_example_get(
+                required_no_example,
+                required_with_example,
+            ).await?;
+            debug!("Result: {:?}", result);
+
+            match result {
+                QueryExampleGetResponse::OK
+                => "OK\n".to_string()
+                    ,
+            }
+        }
         Operation::ReadonlyAuthSchemeGet {
         } => {
             info!("Performing a ReadonlyAuthSchemeGet request");
@@ -568,6 +601,22 @@ async fn main() -> Result<()> {
 
             match result {
                 RegisterCallbackPostResponse::OK
+                => "OK\n".to_string()
+                    ,
+            }
+        }
+        Operation::RequiredBinaryStreamPut {
+            body,
+        } => {
+            info!("Performing a RequiredBinaryStreamPut request");
+
+            let result = client.required_binary_stream_put(
+                body,
+            ).await?;
+            debug!("Result: {:?}", result);
+
+            match result {
+                RequiredBinaryStreamPutResponse::OK
                 => "OK\n".to_string()
                     ,
             }

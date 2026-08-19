@@ -17,6 +17,7 @@
 
 package org.openapitools.codegen.languages;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
 import com.samskivert.mustache.Mustache;
 import io.swagger.v3.oas.models.media.Schema;
@@ -42,6 +43,9 @@ import java.util.*;
 import static org.openapitools.codegen.utils.CamelizeOption.LOWERCASE_FIRST_LETTER;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 
+/**
+ * <p>Mustache templates are located in {@code src/main/resources/go/}.
+ */
 public class GoClientCodegen extends AbstractGoCodegen {
 
     private final Logger LOGGER = LoggerFactory.getLogger(GoClientCodegen.class);
@@ -152,6 +156,19 @@ public class GoClientCodegen extends AbstractGoCodegen {
         cliOptions.add(CliOption.newBoolean(WITH_GO_MOD, "Generate go.mod and go.sum", true));
         cliOptions.add(CliOption.newBoolean(CodegenConstants.GENERATE_MARSHAL_JSON, CodegenConstants.GENERATE_MARSHAL_JSON_DESC, true));
         cliOptions.add(CliOption.newBoolean(CodegenConstants.GENERATE_UNMARSHAL_JSON, CodegenConstants.GENERATE_UNMARSHAL_JSON_DESC, true));
+
+        CliOption enumUnknownDefaultCaseOpt = CliOption.newBoolean(
+                CodegenConstants.ENUM_UNKNOWN_DEFAULT_CASE,
+                CodegenConstants.ENUM_UNKNOWN_DEFAULT_CASE_DESC).defaultValue(Boolean.FALSE.toString());
+        Map<String, String> enumUnknownDefaultCaseOpts = new HashMap<>();
+        enumUnknownDefaultCaseOpts.put("false",
+                "No changes to the enums are made, this is the default option.");
+        enumUnknownDefaultCaseOpts.put("true",
+                "With this option enabled, each enum will have a new case, 'unknown_default_open_api', so that when the enum case sent by the server is not known by the client/spec, can safely be decoded to this case.");
+        enumUnknownDefaultCaseOpt.setEnum(enumUnknownDefaultCaseOpts);
+        cliOptions.add(enumUnknownDefaultCaseOpt);
+        this.setEnumUnknownDefaultCase(false);
+
         this.setWithGoMod(true);
     }
 
@@ -410,6 +427,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
         }
     }
 
+
     /**
      * Determines if at least one of the allOf pieces of a schema are of type string
      *
@@ -436,6 +454,35 @@ public class GoClientCodegen extends AbstractGoCodegen {
             Object defaultObj = p.getDefault();
             if (defaultObj != null) {
                 return "\"" + escapeText(String.valueOf(defaultObj)) + "\"";
+            }
+            return null;
+        }
+
+        if (ModelUtils.isArraySchema(p)) {
+            StringJoiner joinedDefaultValues = new StringJoiner(", ");
+            Object defaultValues = p.getDefault();
+            if (defaultValues instanceof ArrayNode) {
+                for (var value : (ArrayNode) defaultValues) {
+                    if (value.isNull()) {
+                        joinedDefaultValues.add("nil");
+                    } else if (value.isTextual()) {
+                        joinedDefaultValues.add("\"" + escapeText(value.asText()) + "\"");
+                    } else {
+                        joinedDefaultValues.add(value.toString());
+                    }
+                }
+                return "{" + joinedDefaultValues + "}";
+            } else if (defaultValues instanceof List<?>) {
+                for (var value : (List<?>) defaultValues) {
+                    if (value == null) {
+                        joinedDefaultValues.add("nil");
+                    } else if (value instanceof String) {
+                        joinedDefaultValues.add("\"" + escapeText((String) value) + "\"");
+                    } else {
+                        joinedDefaultValues.add(value.toString());
+                    }
+                }
+                return "{" + joinedDefaultValues + "}";
             }
             return null;
         }
@@ -467,6 +514,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
         for (ModelMap m : objs.getModels()) {
             CodegenModel model = m.getModel();
             if (model.isEnum) {
+                prefixEnumUnknownDefaultCase(model);
                 continue;
             }
 
@@ -508,7 +556,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
                 addedFmtImport = true;
             }
 
-            if (model.hasRequired) {
+            if (generateUnmarshalJSON && model.hasRequired) {
                 if (!model.isAdditionalPropertiesTrue &&
                         (model.oneOf == null || model.oneOf.isEmpty()) &&
                         (model.anyOf == null || model.anyOf.isEmpty())) {
@@ -527,6 +575,41 @@ public class GoClientCodegen extends AbstractGoCodegen {
             }
         }
         return objs;
+    }
+
+    /**
+     * Prefixes the generated {@code unknown_default_open_api} enum case with the model name when enum class prefixing
+     * is disabled.
+     * <p>
+     * Go enum constants are emitted at package scope, so multiple models otherwise generate duplicate
+     * {@code UNKNOWN_DEFAULT_OPEN_API} constants.
+     */
+    @SuppressWarnings("unchecked")
+    private void prefixEnumUnknownDefaultCase(CodegenModel model) {
+        // Only the synthetic unknown-default fallback needs a model-specific prefix. Regular enum class prefixing
+        // already prefixes every enum case, and models without allowable values do not need any post-processing.
+        if (!enumUnknownDefaultCase || enumClassPrefix || model.allowableValues == null) {
+            return;
+        }
+
+        // The enum variables are stored by the shared enum post-processing as allowableValues["enumVars"].
+        Object enumVarsObject = model.allowableValues.get("enumVars");
+        if (!(enumVarsObject instanceof List)) {
+            return;
+        }
+
+        // The unknown-default fallback is appended as the last enum variable. If that shape changes, skip safely.
+        List<?> enumVars = (List<?>) enumVarsObject;
+        if (enumVars.isEmpty() || !(enumVars.get(enumVars.size() - 1) instanceof Map)) {
+            return;
+        }
+
+        // Prefix only the fallback name so user-defined enum values keep their existing generated names.
+        Map<String, Object> fallbackEnumVar = (Map<String, Object>) enumVars.get(enumVars.size() - 1);
+        Object fallbackName = fallbackEnumVar.get("name");
+        if (fallbackName instanceof String) {
+            fallbackEnumVar.put("name", model.classname.toUpperCase(Locale.ROOT) + "_" + fallbackName);
+        }
     }
 
     @Override
@@ -578,7 +661,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
         } else if (codegenParameter.isPrimitiveType) { // primitive type
             if (codegenParameter.isString) {
                 if (!StringUtils.isEmpty(codegenParameter.example) && !"null".equals(codegenParameter.example)) {
-                    return "\"" + codegenParameter.example + "\"";
+                    return "\"" + escapeText(codegenParameter.example) + "\"";
                 } else {
                     return "\"" + codegenParameter.paramName + "_example\"";
                 }
@@ -610,7 +693,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
                 return constructExampleCode(modelMaps.get(codegenParameter.dataType), modelMaps, processedModelMap, 0);
             } else if (codegenParameter.isEmail) { // email
                 if (!StringUtils.isEmpty(codegenParameter.example) && !"null".equals(codegenParameter.example)) {
-                    return "\"" + codegenParameter.example + "\"";
+                    return "\"" + escapeText(codegenParameter.example) + "\"";
                 } else {
                     return "\"" + codegenParameter.paramName + "@example.com\"";
                 }
@@ -651,7 +734,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
         } else if (codegenProperty.isPrimitiveType) { // primitive type
             if (codegenProperty.isString) {
                 if (!StringUtils.isEmpty(codegenProperty.example) && !"null".equals(codegenProperty.example)) {
-                    return "\"" + codegenProperty.example + "\"";
+                    return "\"" + escapeText(codegenProperty.example) + "\"";
                 } else {
                     return "\"" + codegenProperty.name + "_example\"";
                 }
@@ -684,7 +767,7 @@ public class GoClientCodegen extends AbstractGoCodegen {
                 return constructExampleCode(modelMaps.get(codegenProperty.dataType), modelMaps, processedModelMap, depth + 1);
             } else if (codegenProperty.isEmail) { // email
                 if (!StringUtils.isEmpty(codegenProperty.example) && !"null".equals(codegenProperty.example)) {
-                    return "\"" + codegenProperty.example + "\"";
+                    return "\"" + escapeText(codegenProperty.example) + "\"";
                 } else {
                     return "\"" + codegenProperty.name + "@example.com\"";
                 }
